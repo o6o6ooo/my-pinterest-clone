@@ -1,12 +1,41 @@
-.animatedPart {
-    animation: spin 3s linear infinite;
-}
-
-@keyframes spin {
-    from {
+@keyframes orbit {
+    0% {
         transform: rotate(0deg);
     }
 
-    to {
+    100% {
         transform: rotate(360deg);
-    } }
+    }
+}
+
+.orbit-wrapper {
+    position: absolute;
+    top: 48%;
+    left: 35%;
+    width: 40px;
+    height: 40px;
+    animation: orbit 2s linear infinite;
+    transform-origin: 50% 50%;
+}
+
+.dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: white;
+    top: 50%;
+    left: 50%;
+    margin: -4px 0 0 -4px;
+}
+
+.dot1 {
+    transform: rotate(0deg) translateX(40px) rotate(0deg);
+}
+
+.dot2 {
+    transform: rotate(30deg) translateX(40px) rotate(-120deg);
+}
+
+.dot3 {
+    transform: rotate(60deg) translateX(40px) rotate(-240deg); }
