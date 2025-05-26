@@ -10,7 +10,6 @@ import Notification from './pages/Notification';
 import User from './pages/User';
 import VerifyEmail from './pages/VerifyEmail';
 import AuthProvider from './AuthProvider';
-import RegisterName from './pages/RegisterName';
 
 function App() {
   return (
@@ -26,7 +25,6 @@ function App() {
           <Route path="/notifications" element={<Notification />} />
           <Route path="/user" element={<User />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/register-name" element={<RegisterName />} />
         </Routes>
       </AuthProvider>
     </Router>

@@ -11,8 +11,6 @@ export default function AuthProvider({ children }) {
             if (user) {
                 if (!user.emailVerified) {
                     navigate('/verify-email');
-                } else if (!user.displayName) {
-                    navigate('/register-name');
                 } else {
                     navigate('/home');
                 }
@@ -22,6 +20,6 @@ export default function AuthProvider({ children }) {
         });
         return () => unsubscribe();
     }, [navigate]);
-    
+
     return children;
 }
