@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Splash from './pages/Splash';
-import InviteCode from './pages/InvitationCode';
+import InvitationCode from './pages/InvitationCode';
 import Auth from './pages/Auth';
 import HomeFeed from './pages/Homefeed';
 import Search from './pages/Search';
@@ -14,7 +14,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Splash />} />
-        <Route path="/invite" element={<InviteCode />} />
+        <Route path="/invite" element={<InvitationCode />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/home" element={<HomeFeed />} />
         <Route path="/search" element={<Search />} />
