@@ -10,6 +10,7 @@ import Notifications from './pages/Notifications';
 import User from './pages/User';
 import VerifyEmail from './pages/VerifyEmail';
 import AuthProvider from './AuthProvider';
+import MainLayout from './layouts/MainLayout';
 
 function App() {
   return (
@@ -19,12 +20,16 @@ function App() {
           <Route path="/" element={<Splash />} />
           <Route path="/invite" element={<InvitationCode />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/home" element={<HomeFeed />} />
-          <Route path="/Gallery" element={<Gallery />} />
-          <Route path="/upload" element={<Upload />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/user" element={<User />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+
+          {/* ここからはタブ付きページ用レイアウト */}
+          <Route element={<MainLayout />}>
+            <Route path="/home" element={<HomeFeed />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/upload" element={<Upload />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/user" element={<User />} />
+          </Route>
         </Routes>
       </AuthProvider>
     </Router>

@@ -1,25 +1,33 @@
 import { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function AuthProvider({ children }) {
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 if (!user.emailVerified) {
-                    navigate('/verify-email');
+                    if (location.pathname !== '/verify-email') {
+                        navigate('/verify-email');
+                    }
                 } else {
-                    navigate('/home');
+                    // 認証済みで、かつ今が /home じゃなければ遷移
+                    if (!['/home', '/gallery', '/upload', '/notifications', '/user'].includes(location.pathname)) {
+                        navigate('/home');
+                    }
                 }
             } else {
-                navigate('/auth');
+                if (location.pathname !== '/auth') {
+                    navigate('/auth');
+                }
             }
         });
         return () => unsubscribe();
-    }, [navigate]);
+    }, [navigate, location]);
 
     return children;
 }
