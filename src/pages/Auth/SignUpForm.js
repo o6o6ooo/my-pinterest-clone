@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import EyeIcon from '../../components/EyeIcon';
@@ -13,6 +13,7 @@ export default function SignUpForm() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const [name, setName] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -27,6 +28,7 @@ export default function SignUpForm() {
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            await updateProfile(userCredential.user, { displayName: name });
             await sendEmailVerification(userCredential.user);
             console.log('Verification email sent');
             navigate('/verify-email');
@@ -44,6 +46,22 @@ export default function SignUpForm() {
     return (
         <form onSubmit={handleSubmit} className="flex flex-col space-y-6 px-6 py-8 rounded-lg bg-transparent max-w-md mx-auto">
             {error && <p className="text-red-600 text-sm font-medium">{error}</p>}
+
+            {/* name */}
+            <div className="relative w-full">
+                <label htmlFor="name" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
+                    Name
+                </label>
+                <input
+                    type="text"
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
+                    required
+                    disabled={loading}
+                />
+            </div>
 
             {/* Email */}
             <div className="relative w-full">

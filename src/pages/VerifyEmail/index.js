@@ -14,7 +14,7 @@ export default function VerifyEmail() {
                 await auth.currentUser.reload();
                 if (auth.currentUser.emailVerified) {
                     clearInterval(interval);
-                    navigate('/register-name'); // 認証済なら名前登録ページへ遷移
+                    navigate('/home');
                 }
             }
         }, 3000); // 3秒ごとにチェック
