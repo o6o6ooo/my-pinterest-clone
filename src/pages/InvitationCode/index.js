@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './index.css';
 import PasteIcon from '../../components/PasteIcon';
 
 export default function InvitationCode() {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -18,7 +20,7 @@ export default function InvitationCode() {
         } else {
             setError('');
             console.log('Correct code!');
-            // ページ遷移処理など
+            navigate('/auth');
         }
     };
 
