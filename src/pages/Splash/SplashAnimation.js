@@ -3,9 +3,13 @@ import styles from './Splash.module.css';
 
 export default function SplashAnimation() {
     return (
-        <div className={styles.animatedPart}>
-            {/* ロゴの一部や画像をここに */}
-            <img src="/logo192.png" alt="Logo" />
+        <div className="relative flex justify-center items-center h-screen bg-[#A5C3DE]">
+            <img src="/logobase.png" alt="logo" className="w-32 h-32" />
+            <div className={styles['orbit-wrapper']}>
+                <div className={`${styles.dot} ${styles.dot1}`}></div>
+                <div className={`${styles.dot} ${styles.dot2}`}></div>
+                <div className={`${styles.dot} ${styles.dot3}`}></div>
+            </div>
         </div>
     );
 }
