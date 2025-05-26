@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './index.css';
 import PasteIcon from '../../components/PasteIcon';
 
 export default function InvitationCode() {
