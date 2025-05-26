@@ -8,20 +8,25 @@ import Search from './pages/Search';
 import Upload from './pages/Upload';
 import Notification from './pages/Notification';
 import User from './pages/User';
+import VerifyEmail from './pages/VerifyEmail';
+import AuthProvider from './AuthProvider';
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Splash />} />
-        <Route path="/invite" element={<InvitationCode />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/home" element={<HomeFeed />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/upload" element={<Upload />} />
-        <Route path="/notifications" element={<Notification />} />
-        <Route path="/user" element={<User />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Splash />} />
+          <Route path="/invite" element={<InvitationCode />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/home" element={<HomeFeed />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/upload" element={<Upload />} />
+          <Route path="/notifications" element={<Notification />} />
+          <Route path="/user" element={<User />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }
