@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth'; 
 import { auth } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import EyeIcon from '../../components/EyeIcon';
@@ -22,15 +22,18 @@ export default function SignUpForm() {
             return;
         }
         try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            console.log('Sign up successful!');
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            await sendEmailVerification(userCredential.user);
+            console.log('Verification email sent');
+            navigate('/verify-email');
         } catch (err) {
             if (err.code === 'auth/email-already-in-use') {
                 setError('This email address is already registered.');
             } else {
                 setError('Failed to sign up. Please try again.');
             }
-          }    };
+        }
+    };
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col space-y-6 px-6 py-8 rounded-lg bg-transparent">
