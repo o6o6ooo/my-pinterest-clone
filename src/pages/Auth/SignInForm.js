@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../firebase';
 import EyeIcon from '../../components/EyeIcon';
 import EyeSlashIcon from '../../components/EyeSlashIcon';
 
@@ -6,75 +8,135 @@ export default function SignInForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState('');
+    const [resetMode, setResetMode] = useState(false);
+    const [resetEmail, setResetEmail] = useState('');
+    const [resetMessage, setResetMessage] = useState('');
+    const [resetIsError, setResetIsError] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // 認証処理などをここに追加
-        console.log('Email:', email);
-        console.log('Password:', password);
+        setError('');
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            console.log('Signed in successfully!');
+            // navigate('/home');
+        } catch (err) {
+            setError('Failed to sign in. Please check your credentials.');
+        }
     };
 
+    const handleResetPassword = async () => {
+        setResetMessage('');
+        setResetIsError(false);
+        try {
+            await sendPasswordResetEmail(auth, resetEmail);
+            setResetMessage('Password reset email sent!');
+        } catch (err) {
+            if (err.code === 'auth/user-not-found') {
+                setResetMessage('This email address is not registered.');
+                setResetIsError(true);
+            } else {
+                setResetMessage('Failed to send reset email.');
+                setResetIsError(true);
+            }
+        }
+      };
+
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col space-y-6 px-6 py-8 rounded-lg bg-transparent">
-            {/* Email */}
-            <div className="relative w-full">
-                <label
-                    htmlFor="email"
-                    className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none"
-                >
-                    Email
-                </label>
-                <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="email"
-                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                    required
-                    style={{ minHeight: '48px' }}
-                />
-            </div>
+        <div className="px-6 py-8 rounded-lg bg-transparent max-w-md mx-auto">
+            {!resetMode ? (
+                <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
+                    {error && <p className="text-red-600 text-sm font-medium">{error}</p>}
 
-            {/* Password */}
-            <div className="relative w-full">
-                <label
-                    htmlFor="password"
-                    className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none"
-                >
-                    Password
-                </label>
-                <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pr-10 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                    required
-                    style={{ minHeight: '48px' }}
-                />
-                <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 text-[#0A4A6E] hover:text-[#08324E]"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                    {showPassword ? (
-                        <EyeSlashIcon className="w-5 h-5" />
-                    ) : (
-                        <EyeIcon className="w-5 h-5" />
-                    )}
-                </button>
-            </div>
+                    {/* Email */}
+                    <div className="relative w-full">
+                        <label htmlFor="email" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            autoComplete="email"
+                            className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
+                            required
+                        />
+                    </div>
 
-            {/* Submit */}
-            <button
-                type="submit"
-                className="w-full py-3 rounded-lg bg-[#0A4A6E] text-white font-medium hover:bg-[#08324E] transition-colors"
-            >
-                Sign In
-            </button>
-        </form>
+                    {/* Password */}
+                    <div className="relative w-full">
+                        <label htmlFor="password" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
+                            Password
+                        </label>
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            id="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            autoComplete="current-password"
+                            className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute top-1/2 right-3 -translate-y-1/2 text-[#0A4A6E] hover:text-[#08324E]"
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                            {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                        </button>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="w-full py-3 rounded-lg bg-[#0A4A6E] text-white font-medium hover:bg-[#08324E] transition-colors"
+                    >
+                        Sign In
+                    </button>
+
+                    <p
+                        className="mt-4 text-sm text-[#0A4A6E] underline cursor-pointer select-none"
+                        onClick={() => {
+                            setResetMode(true);
+                            setResetMessage('');
+                            setResetEmail(email);
+                        }}
+                    >
+                        Forgot password?
+                    </p>
+                </form>
+            ) : (
+                <div className="flex flex-col space-y-4">
+                    <p className="text-[#0A4A6E] font-semibold">Reset Password</p>
+                    <input
+                        type="email"
+                        placeholder="Enter your email"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        className="w-full border border-[#0A4A6E] rounded-lg p-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
+                        required
+                    />
+                    <button
+                        type="button"
+                        onClick={handleResetPassword}
+                        className="w-full py-3 rounded-lg bg-[#0A4A6E] text-white font-medium hover:bg-[#08324E] transition-colors"
+                    >
+                        Send Reset Email
+                    </button>
+                        {resetMessage && <p className={`text-sm font-medium ${resetIsError ? 'text-red-600' : 'text-[#0A4A6E]'}`}>
+                            {resetMessage}
+                        </p>}
+
+                    <p
+                        className="mt-4 text-sm text-[#0A4A6E] underline cursor-pointer select-none"
+                        onClick={() => setResetMode(false)}
+                    >
+                        Back to Sign In
+                    </p>
+                </div>
+            )}
+        </div>
     );
 }
