@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 
 // Home
 const HomeIcon = ({ filled, className }) => filled ? (
@@ -60,31 +60,51 @@ const UserIcon = ({ filled, className }) => filled ? (
 );
 
 export default function BottomNavBar() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const tabs = [
         { name: 'Home', to: '/home', Icon: HomeIcon },
         { name: 'Gallery', to: '/gallery', Icon: GalleryIcon },
-        { name: 'Upload', to: '/upload', Icon: UploadIcon },
+        { name: 'Upload', to: null, Icon: UploadIcon }, // UploadはNavLinkじゃなくなる
         { name: 'Notifications', to: '/notifications', Icon: NotificationsIcon },
         { name: 'User', to: '/user', Icon: UserIcon },
     ];
 
     return (
         <nav className="fixed bottom-0 left-10 right-10 flex justify-between px-5 py-4 z-50 md:hidden" style={{ height: '100px' }}>
-            {tabs.map(({ name, to, Icon }) => (
-                <NavLink
-                    key={name}
-                    to={to}
-                    className={({ isActive }) =>
-                        `flex flex-col items-center text-xs ${isActive ? 'text-[#0A4A6E]' : 'text-[#0A4A6E]'}`
-                    }
-                >
-                    {({ isActive }) => (
-                        <>
+            {tabs.map(({ name, to, Icon }) => {
+                if (name === 'Upload') {
+                    return (
+                        <button
+                            key={name}
+                            onClick={() => {
+                                // クエリに upload=true を追加
+                                const params = new URLSearchParams(location.search);
+                                params.set('upload', 'true');
+                                navigate(`${location.pathname}?${params.toString()}`);
+                            }}
+                            className="flex flex-col items-center text-[#0A4A6E]"
+                        >
+                            <Icon filled={false} className="w-8 h-8" />
+                        </button>
+                    );
+                }
+
+                return (
+                    <NavLink
+                        key={name}
+                        to={to}
+                        className={({ isActive }) =>
+                            `flex flex-col items-center text-[#0A4A6E] ${isActive ? 'text-[#0A4A6E]' : ''}`
+                        }
+                    >
+                        {({ isActive }) => (
                             <Icon filled={isActive} className="w-8 h-8" />
-                        </>
-                    )}
-                </NavLink>            
-            ))}
+                        )}
+                    </NavLink>
+                );
+            })}
         </nav>
     );
 }
