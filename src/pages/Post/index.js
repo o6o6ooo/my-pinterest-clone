@@ -11,6 +11,8 @@ export default function Post() {
     const [tags, setTags] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [errors, setErrors] = useState([]);
+    const currentYear = new Date().getFullYear();
 
     const handleThumbnailClick = () => {
         setShowFullScreen(true);
@@ -44,12 +46,26 @@ export default function Post() {
         setFiles(newFiles);
     };
 
+    const handleYearChange = (e) => {
+        setYear(e.target.value);
+      };
+    
     const handleUpload = () => {
-        console.log('Upload button pressed. Files:', files);
-        console.log('Selected year:', year);
-        console.log('Hashtags:', tags);
-        console.log('Selected group:', selectedGroup);
-    // TODO: ここでFirebaseなどに保存するロジックを実装
+
+        // validation check
+        const newErrors = [];
+        if (year) {
+            const numYear = Number(year);
+            if (isNaN(numYear) || numYear < 1950 || numYear > currentYear) {
+                newErrors.push('Please enter a year between 1950 and the current year.');
+            }
+        }
+        if (tags.length > 5) newErrors.push('You can add up to 5 hashtags.');
+        if (!selectedGroup) newErrors.push('Please select a group.');
+        setErrors(newErrors);
+        if (newErrors.length > 0) return;
+    
+        console.log('Upload開始:', { files, year, tags, selectedGroup });
     };
 
     useEffect(() => {
@@ -80,7 +96,7 @@ export default function Post() {
                         }}
                     />
                 ))}
-                {/* バッジ */}
+                {/* badge */}
                 {files.length > 1 && !showFullScreen && (
                     <div className="absolute -top-2 -left-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs" style={{ zIndex: 1000 }}>
                         {files.length}
@@ -99,7 +115,7 @@ export default function Post() {
                     pattern="[0-9]*"
                     id="year"
                     value={year}
-                    onChange={(e) => setYear(e.target.value)}
+                    onChange={handleYearChange}
                     className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
                 />
             </div>
@@ -203,6 +219,15 @@ export default function Post() {
             >
                 Post
             </button>
+
+            {/* validation errors */}
+            {errors.length > 0 && (
+                <div className="max-w-xs mt-4 p-3 text-red-600 text-sm font-medium space-y-1">
+                    {errors.map((error, i) => (
+                        <p key={i}>{error}</p>
+                    ))}
+                </div>
+            )}
 
             {/* full screen preview */}
             {showFullScreen && (
