@@ -5,7 +5,6 @@ import InvitationCode from './pages/InvitationCode';
 import Auth from './pages/Auth';
 import HomeFeed from './pages/Homefeed';
 import Gallery from './pages/Gallery';
-import Upload from './pages/Upload';
 import Notifications from './pages/Notifications';
 import User from './pages/User';
 import VerifyEmail from './pages/VerifyEmail';
@@ -26,7 +25,6 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/home" element={<HomeFeed />} />
             <Route path="/gallery" element={<Gallery />} />
-            <Route path="/upload" element={<Upload />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/user" element={<User />} />
           </Route>
