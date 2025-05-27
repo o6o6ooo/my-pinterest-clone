@@ -65,7 +65,7 @@ export default function Post() {
         setErrors(newErrors);
         if (newErrors.length > 0) return;
     
-        console.log('Upload開始:', { files, year, tags, selectedGroup });
+        console.log('Uploading:', { files, year, tags, selectedGroup });
     };
 
     useEffect(() => {
