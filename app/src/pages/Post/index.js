@@ -1,5 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { db, storage } from '../../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function Post() {
     const location = useLocation();
@@ -50,7 +53,8 @@ export default function Post() {
         setYear(e.target.value);
       };
     
-    const handleUpload = () => {
+    const handleUpload = async () => {
+        console.log('Upload started');
 
         // validation check
         const newErrors = [];
@@ -65,7 +69,41 @@ export default function Post() {
         setErrors(newErrors);
         if (newErrors.length > 0) return;
     
-        console.log('Uploading:', { files, year, tags, selectedGroup });
+        // upload to firebase
+        try {
+            const uploadedPhotoURLs = [];
+            for (const file of files) {
+                // ユニークなIDを生成（例: 日時-ファイル名）
+                const photoId = `${Date.now()}-${file.name}`;
+                const storageRef = ref(storage, `photos/${photoId}`);
+                await uploadBytes(storageRef, file);
+
+                // 画像のダウンロードURLを取得
+                const downloadURL = await getDownloadURL(storageRef);
+                uploadedPhotoURLs.push(downloadURL);
+            }
+
+            // set fields
+            const photoData = {
+                group_id: selectedGroup?.id || '', // 選択されたグループ
+                year: year || null,                // 年は任意
+                hashtags: tags,                    // 例: ["#fun", "#friends"]
+                photo_urls: uploadedPhotoURLs,     // 画像のURLリスト
+                created_at: serverTimestamp(),     // サーバー側の時刻
+                // 必要に応じて他のプロパティも追加できる
+            };
+
+            // Firestoreに保存
+            await addDoc(collection(db, 'photos'), photoData);
+
+            // 成功後の処理（例: ホームに戻すとか）
+            alert('Upload complete!');
+            navigate('/home');
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Failed to upload.');
+        }
     };
 
     useEffect(() => {
