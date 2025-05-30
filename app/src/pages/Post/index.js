@@ -16,11 +16,13 @@ export default function Post() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [errors, setErrors] = useState([]);
     const currentYear = new Date().getFullYear();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleThumbnailClick = () => {
         setShowFullScreen(true);
     };
 
+    // add "#" to hashtags 
     const handleTagInputChange = (e) => {
         let value = e.target.value;
         if (!value.startsWith('#')) {
@@ -29,6 +31,7 @@ export default function Post() {
         setTagInput(value);
     };
 
+    // when hit enter confirms the hashtag
     const handleTagKeyDown = (e) => {
         if (e.key === 'Enter' && tagInput.trim() !== '') {
             e.preventDefault();
@@ -39,20 +42,25 @@ export default function Post() {
         }
     };
 
+    // delete hashtags
     const handleRemoveTag = (index) => {
         setTags(tags.filter((_, i) => i !== index));
     };
 
+    // remove photos with x button
     const handleRemoveFile = (indexToRemove) => {
         const newFiles = [...files];
         newFiles.splice(indexToRemove, 1);
         setFiles(newFiles);
     };
 
+    // set year
     const handleYearChange = (e) => {
         setYear(e.target.value);
       };
     
+
+    // post
     const handleUpload = async () => {
         console.log('Upload started');
 
@@ -69,40 +77,52 @@ export default function Post() {
         setErrors(newErrors);
         if (newErrors.length > 0) return;
     
-        // upload to firebase
+        // upload photos to Cloudinary
         try {
+            setIsLoading(true); // Loading
+
             const uploadedPhotoURLs = [];
-            for (const file of files) {
-                // ユニークなIDを生成（例: 日時-ファイル名）
-                const photoId = `${Date.now()}-${file.name}`;
-                const storageRef = ref(storage, `photos/${photoId}`);
-                await uploadBytes(storageRef, file);
+            // FormDataを作る
+            const formData = new FormData();
+            formData.append('image', files[0]); // 今回は1枚目だけ
+            // TODO: 他のデータ（year, tags, group_idなど）を送るならここで formData に追加！
 
-                // 画像のダウンロードURLを取得
-                const downloadURL = await getDownloadURL(storageRef);
-                uploadedPhotoURLs.push(downloadURL);
-            }
+            const response = await fetch('http://localhost:5001/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
 
-            // set fields
-            const photoData = {
-                group_id: selectedGroup?.id || '', // 選択されたグループ
-                year: year || null,                // 年は任意
-                hashtags: tags,                    // 例: ["#fun", "#friends"]
-                photo_urls: uploadedPhotoURLs,     // 画像のURLリスト
-                created_at: serverTimestamp(),     // サーバー側の時刻
-                // 必要に応じて他のプロパティも追加できる
-            };
+            if (!response.ok) throw new Error('Upload failed.');
 
-            // Firestoreに保存
-            await addDoc(collection(db, 'photos'), photoData);
+            const data = await response.json();
+            console.log('Upload successful:', data);
 
-            // 成功後の処理（例: ホームに戻すとか）
-            alert('Upload complete!');
-            navigate('/home');
+            if (data.url) {
+                // store in Firestore
+                const photoData = {
+                    photo_url: data.url, // Cloudinary URL
+                    group_id: selectedGroup?.id,
+                    year: year || null,
+                    hashtags: tags,
+                    created_at: serverTimestamp(),
+                };
 
+                try {
+                    await addDoc(collection(db, 'photos'), photoData);
+                    alert('Upload and save complete!');
+                    navigate('/home');
+                } catch (firestoreError) {
+                    console.error('Firestore save error:', firestoreError);
+                    alert('Upload to Cloudinary succeeded, but saving to Firestore failed.');
+                }
+            } else {
+                alert('Cloudinary upload returned no URL.');
+              }
         } catch (error) {
             console.error('Upload error:', error);
             alert('Failed to upload.');
+        } finally {
+            setIsLoading(false); // stop loading
         }
     };
 
@@ -253,10 +273,19 @@ export default function Post() {
             {/* post button */}
             <button
                 onClick={handleUpload}
-                className="w-full py-3 mt-6 bg-[#0A4A6E] text-white rounded-lg font-medium text-center hover:bg-[#08324E] transition-colors max-w-xs"
+                disabled={isLoading}
+                className={`w-full py-3 mt-6 rounded-lg font-medium text-center transition-colors max-w-xs ${isLoading ? 'bg-[#0A4A6E] bg-opacity-70 cursor-not-allowed' : 'bg-[#0A4A6E] hover:bg-[#08324E]'
+                    } text-white`}
             >
-                Post
+                {isLoading ? 'Posting...' : 'Post'}
             </button>
+
+            {/* loading */}
+            {isLoading && (
+                <div className="max-w-xs mt-2 text-[#0A4A6E] text-sm font-medium">
+                    Loading...
+                </div>
+            )}
 
             {/* validation errors */}
             {errors.length > 0 && (
