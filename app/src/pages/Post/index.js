@@ -87,7 +87,7 @@ export default function Post() {
             formData.append('image', files[0]); // 今回は1枚目だけ
             // TODO: 他のデータ（year, tags, group_idなど）を送るならここで formData に追加！
 
-            const response = await fetch('http://localhost:5001/api/upload', {
+            const response = await fetch('http://192.168.4.48:5001/api/upload', {
                 method: 'POST',
                 body: formData,
             });
