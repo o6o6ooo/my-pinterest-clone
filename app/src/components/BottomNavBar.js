@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 
 // Home
 const HomeIcon = ({ filled, className }) => filled ? (
@@ -59,18 +59,18 @@ const UserIcon = ({ filled, className }) => filled ? (
     </svg>
 );
 
-export default function BottomNavBar() {
+export default function BottomNavBar({ onUploadClick }) { // onUploadClick受け取る
     const tabs = [
         { name: 'Home', to: '/home', Icon: HomeIcon },
         { name: 'Gallery', to: '/gallery', Icon: GalleryIcon },
-        { name: 'Upload', to: '/upload', Icon: UploadIcon },
         { name: 'Notifications', to: '/notifications', Icon: NotificationsIcon },
         { name: 'User', to: '/user', Icon: UserIcon },
     ];
 
     return (
         <nav className="fixed bottom-0 left-10 right-10 flex justify-between px-5 py-4 z-50 md:hidden" style={{ height: '100px' }}>
-            {tabs.map(({ name, to, Icon }) => (
+            {/* home, gallery */}
+            {tabs.slice(0, 2).map(({ name, to, Icon }) => (
                 <NavLink
                     key={name}
                     to={to}
@@ -79,11 +79,32 @@ export default function BottomNavBar() {
                     }
                 >
                     {({ isActive }) => (
-                        <>
-                            <Icon filled={isActive} className="w-8 h-8" />
-                        </>
+                        <Icon filled={isActive} className="w-8 h-8" />
                     )}
-                </NavLink>            
+                </NavLink>
+            ))}
+
+            {/* upload */}
+            <button
+                onClick={onUploadClick}
+                className="flex flex-col items-center text-xs text-[#0A4A6E]"
+            >
+                <UploadIcon filled={false} className="w-8 h-8" />
+            </button>
+
+            {/* notifications, user */}
+            {tabs.slice(2).map(({ name, to, Icon }) => (
+                <NavLink
+                    key={name}
+                    to={to}
+                    className={({ isActive }) =>
+                        `flex flex-col items-center text-xs ${isActive ? 'text-[#0A4A6E]' : 'text-[#0A4A6E]'}`
+                    }
+                >
+                    {({ isActive }) => (
+                        <Icon filled={isActive} className="w-8 h-8" />
+                    )}
+                </NavLink>
             ))}
         </nav>
     );

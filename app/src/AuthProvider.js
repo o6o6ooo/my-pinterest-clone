@@ -16,7 +16,7 @@ export default function AuthProvider({ children }) {
                     }
                 } else {
                     // 認証済みで、かつ今が /home じゃなければ遷移
-                    if (!['/home', '/gallery', '/upload', '/notifications', '/user'].includes(location.pathname)) {
+                    if (!['/home', '/gallery', '/upload', '/notifications', '/user', '/post'].includes(location.pathname)) {
                         navigate('/home');
                     }
                 }
