@@ -1,6 +1,6 @@
 
 # 🌲 my-pinterest-clone app "Kuusi"
-A simple Progressive Web App built with React.
+A littele Pinterest-look Progressive Web App built with React.
 
 ## 📸 Features
 - sharing photos with your family, friends
