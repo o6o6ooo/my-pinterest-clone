@@ -18,6 +18,10 @@ export default function UserSettings() {
         navigate('/user/create-group');
     };
 
+    const handleChangeEmail = () => {
+        navigate('/user/change-email');
+    };    
+
     const handleSignOut = async () => {
         try {
             await signOut(auth);
@@ -38,7 +42,7 @@ export default function UserSettings() {
 
             <div className="w-full max-w-sm mt-10 space-y-2">
                 {/* email */}
-                <div className="flex justify-between items-center py-4 cursor-pointer">
+                <div onClick={handleChangeEmail} className="flex justify-between items-center py-4 cursor-pointer">
                     <span>Email</span>
                     <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-600">{userEmail}</span> {/* 右に寄せて表示 */}
