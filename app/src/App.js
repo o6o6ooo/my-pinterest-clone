@@ -16,6 +16,7 @@ import Post from './pages/Post';
 import UserDashboard from './pages/User';
 import CreateGroup from './pages/User/CreateGroup';
 import ChangeEmail from './pages/User/ChangeEmail';
+import ChangePassword from './pages/User/ChangePassword';
 
 function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -48,6 +49,7 @@ function App() {
           <Route path="/user" element={<UserDashboard />} />
           <Route path="/user/create-group" element={<CreateGroup />} />
           <Route path="/user/change-email" element={<ChangeEmail />} />
+          <Route path="/user/change-password" element={<ChangePassword />} />
         </Route>
       </Routes>
 
