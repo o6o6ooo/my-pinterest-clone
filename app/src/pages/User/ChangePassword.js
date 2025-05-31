@@ -97,8 +97,7 @@ export default function ChangePassword() {
                 <button
                     onClick={handleChangePassword}
                     disabled={isLoading}
-                    className={`py-2 px-4 mt-3 rounded-lg font-medium text-center transition-colors text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'
-                        }`}
+                    className={`py-2 px-4 mt-3 rounded-lg font-medium text-center transition-colors text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'}`}
                 >
                     {isLoading ? 'Updating...' : 'Update Password'}
                 </button>

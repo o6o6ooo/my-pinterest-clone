@@ -136,10 +136,11 @@ export default function CreateGroup() {
                 {/* Create button */}
                 <button
                     onClick={handleCreateGroup}
-                    className="py-2 px-4 mt-3 rounded-lg font-medium text-center transition-colors bg-[#0A4A6E] text-white"
+                    disabled={isLoading}
+                    className={`py-2 px-4 mt-3 rounded-lg font-medium text-center transition-colors text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'}`}
                 >
-                    Create
-                </button>
+                    {isLoading ? 'Saving...' : 'Create'}
+                    </button>
 
                 {/* validation errors */}
                 {errors.length > 0 && (
