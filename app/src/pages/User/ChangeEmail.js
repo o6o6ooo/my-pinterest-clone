@@ -9,6 +9,7 @@ export default function ChangeEmail() {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const [successMessage, setSuccessMessage] = useState('');
 
     useEffect(() => {
         const auth = getAuth();
@@ -19,6 +20,8 @@ export default function ChangeEmail() {
 
     const handleChangeEmail = async () => {
         setError('');
+        setSuccessMessage('');
+
         if (!newEmail) {
             setError('Please enter a new email.');
             return;
@@ -27,8 +30,7 @@ export default function ChangeEmail() {
         try {
             setIsLoading(true);
             await updateEmail(auth.currentUser, newEmail);
-            alert('Email updated successfully!');
-            navigate('/user'); // ユーザ設定ページに戻す
+            setSuccessMessage('Email updated successfully!');
         } catch (err) {
             console.error(err);
             setError('Failed to update email.');
@@ -83,7 +85,16 @@ export default function ChangeEmail() {
                     >
                     {isLoading ? 'Updating...' : 'Update Email'}
                 </button>
+
+                {/* errors */}
                 {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+
+                {/* success message */}
+                {successMessage && (
+                    <div className="max-w-xs mt-4 p-3 text-[#0A4A6E] text-sm font-medium space-y-1">
+                        {successMessage}
+                    </div>
+                )}
             </div>
         </div>
     );

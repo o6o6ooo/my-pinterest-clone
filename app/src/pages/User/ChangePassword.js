@@ -112,7 +112,6 @@ export default function ChangePassword() {
                         {successMessage}
                     </div>
                 )}
-
             </div>
         </div>
     );
