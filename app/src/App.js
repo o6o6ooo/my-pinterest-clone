@@ -13,6 +13,8 @@ import BottomNavBar from './components/BottomNavBar';
 import MainLayout from './layouts/MainLayout';
 import UploadOverlay from './components/UploadOverlay';
 import Post from './pages/Post';
+import UserDashboard from './pages/User';
+import CreateGroup from './pages/User/CreateGroup';
 
 function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -42,6 +44,8 @@ function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/user" element={<User />} />
           <Route path="/post" element={<Post />} />
+          <Route path="/user" element={<UserDashboard />} />
+          <Route path="/user/create-group" element={<CreateGroup />} />
         </Route>
       </Routes>
 
