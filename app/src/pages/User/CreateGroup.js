@@ -5,16 +5,18 @@ import { auth, db } from '../../firebase';
 
 export default function CreateGroup() {
     const navigate = useNavigate();
-
     const [groupName, setGroupName] = useState('');
     const [groupId, setGroupId] = useState('');
     const [groupLink, setGroupLink] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
+    const [successMessage, setSuccessMessage] = useState('');
     const currentUser = auth.currentUser;
+    const lowerGroupId = groupId.toLowerCase();
 
     const handleCreateGroup = async () => {
-        console.log('Group creation started');
+        setErrors([]);
+        setSuccessMessage('');
 
         // validation check
         const newErrors = [];
@@ -28,26 +30,25 @@ export default function CreateGroup() {
         try {
             // check duplicate record on group id
             const docRef = doc(db, 'groups', groupId);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                alert('This Group ID is already taken.');
+            const groupDoc = await getDoc(doc(db, 'groups', lowerGroupId));
+            if (groupDoc.exists()) {
+                newErrors.push('This group ID is already taken.');
                 return;
             }
 
             // Store the group in Firestore
             const groupData = {
                 group_name: groupName,
-                group_id: groupId,
-                group_link: `https://my-pinterest-clone.com/group/${groupId}`,
+                group_id: lowerGroupId,
+                group_link: `https://my-pinterest-clone.com/group/${lowerGroupId}`,
                 members: [currentUser.uid],
                 created_at: serverTimestamp(),
             };
 
-            await setDoc(docRef, groupData);
+            await setDoc(doc(db, 'groups', lowerGroupId), groupData);
             console.log('Group created:', groupData);
 
-            alert('Group created successfully!');
-            navigate('/user');
+            setSuccessMessage('Group created successfully!');
 
         } catch (error) {
             console.error('Group creation error:', error);
@@ -55,10 +56,6 @@ export default function CreateGroup() {
         } finally {
             setIsLoading(false);
         }
-    };
-    const handleResetLink = () => {
-        const newLink = `group-${Date.now()}`;
-        setGroupLink(newLink);
     };
 
     // open share window *needs to be fixed after releasing
@@ -78,7 +75,8 @@ export default function CreateGroup() {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
-            {/* 戻るボタン */}
+
+            {/* back */}
             <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
                     <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
@@ -97,7 +95,7 @@ export default function CreateGroup() {
                         onChange={(e) => {
                             const id = e.target.value;
                             setGroupId(id);
-                            setGroupLink(`https://your-app.com/group/join/${id}`);
+                            setGroupLink(`https://your-app.com/group/join/${id.toLowerCase()}`);
                           }}
                         className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
                     />
@@ -124,7 +122,6 @@ export default function CreateGroup() {
                             readOnly
                             className="flex-1 bg-transparent outline-none text-gray-600"
                         />
-
                     </div>
                 </div>
 
@@ -143,6 +140,22 @@ export default function CreateGroup() {
                 >
                     Create
                 </button>
+
+                {/* validation errors */}
+                {errors.length > 0 && (
+                    <div className="max-w-xs mt-4 p-3 text-red-600 text-sm font-medium space-y-1">
+                        {errors.map((error, i) => (
+                            <p key={i}>{error}</p>
+                        ))}
+                    </div>
+                )}
+
+                {/* success message */}
+                {successMessage && (
+                    <div className="max-w-xs mt-4 p-3 text-[#0A4A6E] text-sm font-medium space-y-1">
+                        {successMessage}
+                    </div>
+                )}
             </div>
         </div>
     );
