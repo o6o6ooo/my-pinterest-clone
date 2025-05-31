@@ -27,7 +27,7 @@ export default function UserSettings() {
     };
 
     return (
-        <div className="flex flex-col items-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4">
+        <div className="flex flex-col items-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 pt-10">
             <div className="mt-10 w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
             </div>{/* user icon */}
 
@@ -55,7 +55,7 @@ export default function UserSettings() {
                 </div>
 
                 {/* your groups */}
-                <div className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => navigate('/user/edit-group')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Your groups</span>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
                         <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />

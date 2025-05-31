@@ -17,6 +17,7 @@ import UserDashboard from './pages/User';
 import CreateGroup from './pages/User/CreateGroup';
 import ChangeEmail from './pages/User/ChangeEmail';
 import ChangePassword from './pages/User/ChangePassword';
+import EditGroup from './pages/User/EditGroup';
 
 function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -50,6 +51,7 @@ function App() {
           <Route path="/user/create-group" element={<CreateGroup />} />
           <Route path="/user/change-email" element={<ChangeEmail />} />
           <Route path="/user/change-password" element={<ChangePassword />} />
+          <Route path="/user/edit-group" element={<EditGroup />} />
         </Route>
       </Routes>
 
