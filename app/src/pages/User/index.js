@@ -6,11 +6,13 @@ import { signOut } from 'firebase/auth';
 export default function UserSettings() {
     const navigate = useNavigate();
     const [userEmail, setUserEmail] = useState('');
+    const [displayName, setDisplayName] = useState('');
 
     useEffect(() => {
         const currentUser = auth.currentUser;
         if (currentUser) {
             setUserEmail(currentUser.email);
+            setDisplayName(currentUser.displayName);
         }
     }, []);
 
@@ -38,7 +40,7 @@ export default function UserSettings() {
             </div>{/* user icon */}
 
             {/* user name */}
-            <h1 className="mt-8 text-xl font-semibold">Username</h1>
+            <h1 className="mt-8 text-xl font-semibold">{displayName}</h1>
 
             <div className="w-full max-w-sm mt-10 space-y-2">
                 {/* email */}
