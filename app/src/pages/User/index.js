@@ -44,52 +44,52 @@ export default function UserSettings() {
 
             <div className="w-full max-w-sm mt-10 space-y-2">
                 {/* email */}
-                <div onClick={handleChangeEmail} className="flex justify-between items-center py-4 cursor-pointer">
+                <div onClick={handleChangeEmail} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Email</span>
                     <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-600">{userEmail}</span> {/* 右に寄せて表示 */}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
+                        <span className="text-sm text-gray-600">{userEmail}</span> {/* 右に寄せて表示 */}
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
                             <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                         </svg>
                     </div>
                 </div>
 
                 {/* password */}
-                <div className="flex justify-between items-center py-4 cursor-pointer">
+                <div className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Password</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
                         <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                     </svg>
                 </div>
 
                 {/* your groups */}
-                <div className="flex justify-between items-center py-4 cursor-pointer">
+                <div className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Your groups</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
                         <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                     </svg>
                 </div>
 
                 {/* create a group */}
-                <div className="flex justify-between items-center py-4 cursor-pointer " onClick={handleCreateGroup}>
+                <div className="flex justify-between items-center py-4 cursor-pointer text-lg" onClick={handleCreateGroup}>
                     <span>Create a group</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
                         <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                     </svg>
                 </div>
 
                 {/* tabs in home feed */}
-                <div className="flex justify-between items-center py-4 cursor-pointer">
+                <div className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Tabs in home feed</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
                         <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                     </svg>
                 </div>
 
                 {/* sign out */}
-                <div className="flex justify-between items-center py-4 cursor-pointer" onClick={handleSignOut}>
+                <div className="flex justify-between items-center py-4 cursor-pointer text-lg" onClick={handleSignOut}>
                     <span>Sign out</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
                         <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                     </svg>
                 </div>
