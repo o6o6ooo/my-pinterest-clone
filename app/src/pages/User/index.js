@@ -43,11 +43,11 @@ export default function UserSettings() {
 
     return (
         <div className="flex flex-col items-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 pt-10">
-            <div className="mt-10 relative w-24 h-24 rounded-full" style={{ backgroundColor: bgColour }}>
+            <div className="mt-10 relative w-24 h-24 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: bgColour }}>
                 <span className="text-5xl flex items-center justify-center h-full">{icon}</span>
 
                 {/* ペンアイコンの小さい丸バッジ */}
-                <button className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-200">
+                <button onClick={() => navigate('/user/edit-profile-icon')} className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-200">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"

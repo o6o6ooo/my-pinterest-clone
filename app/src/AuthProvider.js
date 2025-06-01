@@ -22,7 +22,8 @@ export default function AuthProvider({ children }) {
         '/user/create-group',
         '/user/change-email',
         '/user/change-password',
-        '/user/edit-group'
+        '/user/edit-group',
+        '/user/edit-profile-icon'
     ];
 
     useEffect(() => {
