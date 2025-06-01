@@ -8,7 +8,7 @@ export default function UserSettings() {
     const navigate = useNavigate();
     const [userEmail, setUserEmail] = useState('');
     const [displayName, setDisplayName] = useState('');
-    const [icon, setIcon] = useState('😊');
+    const [icon, setIcon] = useState('');
     const [bgColour, setbgColour] = useState('#FEEB6C');
 
     useEffect(() => {
@@ -24,8 +24,8 @@ export default function UserSettings() {
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (userDoc.exists()) {
                 const data = userDoc.data();
-                setIcon(data.icon || '😊');
-                setbgColour(data.bgColour || '#FEEB6C');
+                setIcon(data.icon);
+                setbgColour(data.bgColour);
             }
         };
         fetchUserIcon();

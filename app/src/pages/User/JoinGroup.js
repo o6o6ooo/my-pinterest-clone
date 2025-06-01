@@ -18,7 +18,7 @@ export default function JoinGroup() {
                     const groupData = groupDoc.data();
                     setGroupName(groupData.group_name);
 
-                    // 🔑 サインイン状態のときだけメンバー詳細を取得
+                    // get user colection only when signed in
                     if (auth.currentUser) {
                         const memberUIDs = groupData.members || [];
                         const userDocs = await Promise.all(
