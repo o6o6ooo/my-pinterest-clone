@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { db, auth } from '../../firebase';
 
 export default function JoinGroup() {
     const { groupId } = useParams();
     const navigate = useNavigate();
     const [groupName, setGroupName] = useState('');
-    const [memberNames, setMemberNames] = useState([]);
-    const [groupLink, setGroupLink] = useState('');
+    const [members, setMembers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -18,31 +17,35 @@ export default function JoinGroup() {
                 if (groupDoc.exists()) {
                     const groupData = groupDoc.data();
                     setGroupName(groupData.group_name);
-                    setGroupLink(groupData.group_link);
 
-                    const memberUIDs = groupData.members || [];
+                    // 🔑 サインイン状態のときだけメンバー詳細を取得
+                    if (auth.currentUser) {
+                        const memberUIDs = groupData.members || [];
+                        const userDocs = await Promise.all(
+                            memberUIDs.map(uid => getDoc(doc(db, 'users', uid)))
+                        );
 
-                    const userDocs = await Promise.all(
-                        memberUIDs.map(uid => getDoc(doc(db, 'users', uid)))
-                    );
-
-                    const names = userDocs.map(userDoc => {
-                        if (userDoc.exists()) {
+                        const memberData = userDocs.map(userDoc => {
                             const userData = userDoc.data();
-                            return userData.name || 'Unknown';
-                        }
-                        return 'Unknown';
-                    });
-
-                    setMemberNames(names);
-
+                            return {
+                                icon: userData.icon,
+                                colour: userData.bgColour,
+                            };
+                        });
+                        setMembers(memberData);
+                    }
                 } else {
-                    alert('Group not found');
+                    console.error('Group not found.');
                     navigate('/');
                 }
             } catch (error) {
                 console.error('Error fetching group data:', error);
-                alert('Error loading group.');
+                // 🔑 不要な二重alertを防ぐ
+                if (!auth.currentUser) {
+                    console.log('User not signed in, skipping error alert.');
+                } else {
+                    alert('Error loading group.');
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -65,19 +68,38 @@ export default function JoinGroup() {
                         <div className="pt-4 text-[#0A4A6E] font-medium">{groupName}</div>
                     </div>
 
-                    {/* Save button */}
+                    {/* Member icons */}
+                    {auth.currentUser && members.length > 0 && (
+                        <div className="flex items-center justify-center mt-4 space-x-[-10px]">
+                            {members.map((member, idx) => (
+                                <div
+                                    key={idx}
+                                    className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xl"
+                                    style={{ backgroundColor: member.colour }}
+                                >
+                                    {member.icon}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Members count */}
+                    {auth.currentUser && (
+                        <div className="flex text-base font-medium items-center justify-center">
+                            {members.length} {members.length === 1 ? 'member' : 'members'}
+                        </div>
+                    )}
+
+                    {/* Join button */}
                     <button
-                        disabled={isLoading}
-                        className={`py-2 px-4 mt-3 rounded-lg font-medium text-center transition-colors text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'}`}
+                        onClick={() => {
+                            localStorage.setItem('joinGroupId', groupId);
+                            navigate('/auth');
+                        }}
+                        className="py-2 px-4 rounded-lg font-medium text-center transition-colors text-white bg-[#0A4A6E]"
                     >
-                        {isLoading ? 'Joining...' : 'Join'}
+                        Sign in to join
                     </button>
-
-
-                    {/* Members */}
-                    <div className="text-center mt-4 text-[#0A4A6E]">
-                        {memberNames.length} {memberNames.length === 1 ? 'member' : 'members'} {memberNames.join(', ')}
-                    </div>
                 </div>
             )}
         </div>

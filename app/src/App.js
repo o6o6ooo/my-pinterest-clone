@@ -41,6 +41,7 @@ function App() {
         <Route path="/invite" element={<InvitationCode />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/group/join/:groupId" element={<JoinGroup />} />
         <Route element={<MainLayout />}>
           <Route path="/home" element={<HomeFeed />} />
           <Route path="/gallery" element={<Gallery />} />
@@ -53,7 +54,6 @@ function App() {
           <Route path="/user/change-email" element={<ChangeEmail />} />
           <Route path="/user/change-password" element={<ChangePassword />} />
           <Route path="/user/edit-group" element={<EditGroup />} />
-          <Route path="/group/join/:groupId" element={<JoinGroup />} />
         </Route>
       </Routes>
 
