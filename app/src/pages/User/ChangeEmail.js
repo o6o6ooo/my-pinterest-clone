@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { updateEmail, getAuth } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { auth, db } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
+import { doc, updateDoc } from 'firebase/firestore';
 
 export default function ChangeEmail() {
     const [oldEmail, setOldEmail] = useState('');
@@ -29,7 +30,17 @@ export default function ChangeEmail() {
 
         try {
             setIsLoading(true);
+
+            // update in authentication
             await updateEmail(auth.currentUser, newEmail);
+
+            // update in firestore
+            const userDocRef = doc(db, 'users', auth.currentUser.uid);
+            await updateDoc(userDocRef, {
+                email: newEmail,
+                updated_at: new Date(),
+            });
+
             setSuccessMessage('Email updated successfully!');
         } catch (err) {
             console.error(err);
