@@ -8,10 +8,10 @@ export default function AuthProvider({ children }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // 👇 公開ページ（サインアウト状態でもアクセス可能）
+    // pages open to public (not signed in)
     const publicPages = ['/auth', '/verify-email', '/group/join'];
 
-    // 👇 認証後にアクセス可能なページ（公開ページ以外で）
+    // pages only for signed in user
     const authPages = [
         '/home',
         '/gallery',
@@ -34,7 +34,7 @@ export default function AuthProvider({ children }) {
                         navigate('/verify-email');
                     }
                 } else {
-                    // グループ参加処理（サインイン後だけ）
+                    // join group
                     const joinGroupId = localStorage.getItem('joinGroupId');
                     if (joinGroupId) {
                         try {
@@ -59,10 +59,16 @@ export default function AuthProvider({ children }) {
                         } finally {
                             localStorage.removeItem('joinGroupId');
                         }
-                        return; // ここで return することで通常の処理をスキップ
+                        return;
                     }
 
-                    // 👇 許可されていないページなら /home にリダイレクト
+                    // go to /home after normal sign in
+                    if (publicPages.some(path => location.pathname.startsWith(path))) {
+                        navigate('/home');
+                        return;
+                    }
+
+                    // go to /home instead somewhere not allowed
                     const isAllowedPage =
                         publicPages.some(path => location.pathname.startsWith(path)) ||
                         authPages.some(path => location.pathname.startsWith(path));
@@ -71,7 +77,6 @@ export default function AuthProvider({ children }) {
                     }
                 }
             } else {
-                // サインアウト状態
                 const isPublicPage = publicPages.some(path => location.pathname.startsWith(path));
                 if (!isPublicPage) {
                     navigate('/auth');
