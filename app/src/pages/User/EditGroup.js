@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db } from '../../firebase';
 
 export default function EditGroup() {
     const navigate = useNavigate();
-    const [groups, setGroups] = useState([]); // そのユーザのグループ
+    const [groups, setGroups] = useState([]);
     const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
     const [groupName, setGroupName] = useState('');
     const [groupId, setGroupId] = useState('');
@@ -13,8 +13,9 @@ export default function EditGroup() {
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState([]);
     const [successMessage, setSuccessMessage] = useState('');
+    const [members, setMembers] = useState([]);
 
-    // 取得
+    // グループ情報を取得
     useEffect(() => {
         const fetchGroups = async () => {
             if (!auth.currentUser) return;
@@ -25,14 +26,38 @@ export default function EditGroup() {
 
             setGroups(userGroups);
             if (userGroups.length > 0) {
-                setGroupName(userGroups[0].group_name);
-                setGroupId(userGroups[0].group_id);
-                setGroupLink(userGroups[0].group_link);
+                const firstGroup = userGroups[0];
+                setGroupName(firstGroup.group_name);
+                setGroupId(firstGroup.group_id);
+                setGroupLink(firstGroup.group_link);
             }
         };
-
         fetchGroups();
     }, []);
+
+    // 選択中グループのメンバー情報を取得
+    useEffect(() => {
+        const fetchMembers = async () => {
+            const group = groups[currentGroupIndex];
+            if (!group) return;
+
+            const memberUIDs = group.members || [];
+            const userDocs = await Promise.all(
+                memberUIDs.map(uid => getDoc(doc(db, 'users', uid)))
+            );
+
+            const memberData = userDocs.map(userDoc => {
+                const userData = userDoc.data();
+                return {
+                    icon: userData.icon,
+                    colour: userData.bgColour,
+                };
+            });
+
+            setMembers(memberData);
+        };
+        fetchMembers();
+    }, [groups, currentGroupIndex]);
 
     // グループ切り替え
     const handleSwitchGroup = (index) => {
@@ -44,21 +69,6 @@ export default function EditGroup() {
         setErrors([]);
         setSuccessMessage('');
     };
-
-    // open share window *needs to be fixed after releasing
-    const handleShare = () => {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Check this out!',
-                text: 'Join my group on Kuusi!',
-                url: groupLink,
-            })
-                .then(() => console.log('Shared successfully!'))
-                .catch((error) => console.error('Error sharing:', error));
-        } else {
-            alert('Sharing is not supported on this browser.');
-        }
-    };    
 
     // 保存
     const handleSaveGroup = async () => {
@@ -94,9 +104,22 @@ export default function EditGroup() {
         }
     };
 
+    // シェア
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Check this out!',
+                text: 'Join my group on Kuusi!',
+                url: groupLink,
+            }).then(() => console.log('Shared successfully!'))
+                .catch((error) => console.error('Error sharing:', error));
+        } else {
+            alert('Sharing is not supported on this browser.');
+        }
+    };
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
-
             {/* back */}
             <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
@@ -107,13 +130,12 @@ export default function EditGroup() {
             <h1 className="mt-12 text-2xl font-semibold">Edit Group</h1>
 
             {/* グループ切り替えボタン */}
-            <div className="flex flex-wrap gap-3 mt-10 max-w-sm px-6">
+            <div className="flex flex-wrap gap-3 mt-5 max-w-sm px-6">
                 {groups.map((group, index) => (
                     <button
                         key={index}
                         onClick={() => handleSwitchGroup(index)}
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${index === currentGroupIndex ? 'bg-[#0A4A6E] text-white' : 'bg-white text-[#0A4A6E]'
-                            }`}
+                        className={`px-3 py-1 rounded-full text-sm font-medium ${index === currentGroupIndex ? 'bg-[#0A4A6E] text-white' : 'bg-white text-[#0A4A6E]'}`}
                     >
                         {group.group_name}
                     </button>
@@ -121,7 +143,7 @@ export default function EditGroup() {
             </div>
 
             {/* フォーム */}
-            <div className="mt-8 px-6 py-8 w-full max-w-sm flex flex-col gap-6">
+            <div className="px-6 py-8 w-full max-w-sm flex flex-col gap-6">
                 {/* Group ID */}
                 <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
                     <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">Group ID</label>
@@ -168,6 +190,21 @@ export default function EditGroup() {
                     </svg>
                     <span className="ml-3">Share link</span>
                 </button>
+
+                {/* Member icons */}
+                {members.length > 0 && (
+                    <div className="flex items-center justify-center space-x-[-10px]">
+                        {members.map((member, idx) => (
+                            <div
+                                key={idx}
+                                className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xl"
+                                style={{ backgroundColor: member.colour }}
+                            >
+                                {member.icon}
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 {/* Save button */}
                 <button
