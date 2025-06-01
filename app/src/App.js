@@ -13,6 +13,14 @@ import BottomNavBar from './components/BottomNavBar';
 import MainLayout from './layouts/MainLayout';
 import UploadOverlay from './components/UploadOverlay';
 import Post from './pages/Post';
+import UserDashboard from './pages/User';
+import CreateGroup from './pages/User/CreateGroup';
+import ChangeEmail from './pages/User/ChangeEmail';
+import ChangePassword from './pages/User/ChangePassword';
+import EditGroup from './pages/User/EditGroup';
+import JoinGroup from './pages/User/JoinGroup';
+import EditProfileIcon from './pages/User/EditProfileIcon';
+import Hashtags from './pages/User/Hashtags';
 
 function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -35,6 +43,7 @@ function App() {
         <Route path="/invite" element={<InvitationCode />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/group/join/:groupId" element={<JoinGroup />} />
         <Route element={<MainLayout />}>
           <Route path="/home" element={<HomeFeed />} />
           <Route path="/gallery" element={<Gallery />} />
@@ -42,18 +51,25 @@ function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/user" element={<User />} />
           <Route path="/post" element={<Post />} />
+          <Route path="/user" element={<UserDashboard />} />
+          <Route path="/user/create-group" element={<CreateGroup />} />
+          <Route path="/user/change-email" element={<ChangeEmail />} />
+          <Route path="/user/change-password" element={<ChangePassword />} />
+          <Route path="/user/edit-group" element={<EditGroup />} />
+          <Route path="/user/edit-profile-icon" element={<EditProfileIcon />} />
+          <Route path="/user/hashtags" element={<Hashtags />} />
         </Route>
       </Routes>
 
-      {/* アップロードオーバーレイ */}
+      {/* upload overlay */}
       <UploadOverlay
         isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)} // オーバーレイを閉じる
+        onClose={() => setIsUploadOpen(false)} // close overlay
       />
 
-      {/* ナビゲーションバー */}
+      {/* nav bar */}
       <BottomNavBar
-        onUploadClick={() => setIsUploadOpen(true)} // オーバーレイを開く
+        onUploadClick={() => setIsUploadOpen(true)} // open overlay
       />
     </>
   );

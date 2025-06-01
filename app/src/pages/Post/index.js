@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { db, storage } from '../../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db, storage, auth } from '../../firebase';
+import { collection, addDoc, serverTimestamp, getDocs, doc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function Post() {
@@ -14,6 +14,7 @@ export default function Post() {
     const [tags, setTags] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [userGroups, setUserGroups] = useState([]);
     const [errors, setErrors] = useState([]);
     const currentYear = new Date().getFullYear();
     const [isLoading, setIsLoading] = useState(false);
@@ -35,13 +36,14 @@ export default function Post() {
     const handleTagKeyDown = (e) => {
         if (e.key === 'Enter' && tagInput.trim() !== '') {
             e.preventDefault();
-            if (!tags.includes(tagInput)) {
-                setTags([...tags, tagInput]);
+            const lowerCaseTag = tagInput.toLowerCase();
+            if (!tags.includes(lowerCaseTag)) {
+                setTags([...tags, lowerCaseTag]);
             }
             setTagInput('');
         }
     };
-
+    
     // delete hashtags
     const handleRemoveTag = (index) => {
         setTags(tags.filter((_, i) => i !== index));
@@ -59,6 +61,19 @@ export default function Post() {
         setYear(e.target.value);
       };
     
+    const saveHashtagsToFirestore = async (photoId) => {
+        const hashtagPromises = tags.map((tag) =>
+            addDoc(collection(db, 'hashtags'), {
+                user_id: auth.currentUser?.uid,
+                group_id: selectedGroup?.id,
+                hashtag: tag.toLowerCase(),
+                show_in_feed: false,
+                created_at: serverTimestamp(),
+                photo_id: photoId,
+            })
+        );
+        await Promise.all(hashtagPromises);
+    };
 
     // post
     const handleUpload = async () => {
@@ -76,16 +91,12 @@ export default function Post() {
         if (!selectedGroup) newErrors.push('Please select a group.');
         setErrors(newErrors);
         if (newErrors.length > 0) return;
-    
-        // upload photos to Cloudinary
-        try {
-            setIsLoading(true); // Loading
 
-            const uploadedPhotoURLs = [];
-            // FormDataを作る
+        // upload
+        try {
+            setIsLoading(true);
             const formData = new FormData();
-            formData.append('image', files[0]); // 今回は1枚目だけ
-            // TODO: 他のデータ（year, tags, group_idなど）を送るならここで formData に追加！
+            formData.append('image', files[0]);
 
             const response = await fetch('http://192.168.4.48:5001/api/upload', {
                 method: 'POST',
@@ -97,34 +108,43 @@ export default function Post() {
             const data = await response.json();
             console.log('Upload successful:', data);
 
+            // save in firestore
             if (data.url) {
-                // store in Firestore
                 const photoData = {
-                    photo_url: data.url, // Cloudinary URL
+                    photo_url: data.url,
                     group_id: selectedGroup?.id,
                     year: year || null,
                     hashtags: tags,
                     created_at: serverTimestamp(),
                 };
 
-                try {
-                    await addDoc(collection(db, 'photos'), photoData);
-                    alert('Upload and save complete!');
-                    navigate('/home');
-                } catch (firestoreError) {
-                    console.error('Firestore save error:', firestoreError);
-                    alert('Upload to Cloudinary succeeded, but saving to Firestore failed.');
-                }
+                const photoDocRef = await addDoc(collection(db, 'photos'), photoData);
+                await saveHashtagsToFirestore(photoDocRef.id);
+
+                alert('Upload and save complete!');
+                navigate('/home');
             } else {
                 alert('Cloudinary upload returned no URL.');
-              }
+            }
         } catch (error) {
             console.error('Upload error:', error);
             alert('Failed to upload.');
         } finally {
-            setIsLoading(false); // stop loading
+            setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        const fetchUserGroups = async () => {
+            if (!auth.currentUser) return;
+            const snapshot = await getDocs(collection(db, 'groups'));
+            const groups = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(group => group.members.includes(auth.currentUser.uid));
+            setUserGroups(groups);
+        };
+        fetchUserGroups();
+    }, []);
 
     useEffect(() => {
         if (!files.length) {
@@ -221,19 +241,15 @@ export default function Post() {
 
             {/* Group */}
             <div className="relative w-full max-w-xs mt-5">
-                <label
-                    htmlFor="group"
-                    className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none"
-                >
+                <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
                     Group
                 </label>
                 <button
-                    id="group"
                     type="button"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white flex justify-between items-center"
                 >
-                    {selectedGroup ? selectedGroup.name : "Select Group"}
+                    {selectedGroup ? selectedGroup.group_name : "Select Group"}
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -242,19 +258,13 @@ export default function Post() {
                         stroke="currentColor"
                         className="w-5 h-5"
                     >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                        />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                 </button>
 
                 {isDropdownOpen && (
-                    <div
-                        className="absolute top-full mt-1 w-full border border-[#0A4A6E] rounded-lg bg-white shadow z-50"
-                    >
-                        {mockGroups.map(group => (
+                    <div className="absolute top-full mt-1 w-full border border-[#0A4A6E] rounded-lg bg-white shadow z-50">
+                        {userGroups.map(group => (
                             <button
                                 key={group.id}
                                 className="w-full text-left p-3 hover:bg-gray-100 text-[#0A4A6E]"
@@ -263,7 +273,7 @@ export default function Post() {
                                     setIsDropdownOpen(false);
                                 }}
                             >
-                                {group.name}
+                                {group.group_name}
                             </button>
                         ))}
                     </div>

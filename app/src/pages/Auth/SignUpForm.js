@@ -4,6 +4,8 @@ import { auth } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import EyeIcon from '../../components/EyeIcon';
 import EyeSlashIcon from '../../components/EyeSlashIcon';
+import { db } from '../../firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function SignUpForm() {
     const [email, setEmail] = useState('');
@@ -28,9 +30,21 @@ export default function SignUpForm() {
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            await updateProfile(userCredential.user, { displayName: name });
-            await sendEmailVerification(userCredential.user);
+            const user = userCredential.user;
+
+            await updateProfile(user, { displayName: name });
+
+            await setDoc(doc(db, 'users', user.uid), {
+                name: name,
+                email: email,
+                icon: '🌸',            // default icon
+                bgColour: '#A5C3DE',   // default icon background
+                createdAt: serverTimestamp(),
+            });
+
+            await sendEmailVerification(user);
             console.log('Verification email sent');
+
             navigate('/verify-email');
         } catch (err) {
             if (err.code === 'auth/email-already-in-use') {
