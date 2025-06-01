@@ -197,7 +197,7 @@ export default function EditGroup() {
                         {members.map((member, idx) => (
                             <div
                                 key={idx}
-                                className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xl"
+                                className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xl border-2 border-white shadow-md"
                                 style={{ backgroundColor: member.colour }}
                             >
                                 {member.icon}
