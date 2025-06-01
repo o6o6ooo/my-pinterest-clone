@@ -15,7 +15,7 @@ export default function EditGroup() {
     const [successMessage, setSuccessMessage] = useState('');
     const [members, setMembers] = useState([]);
 
-    // グループ情報を取得
+    // get group info
     useEffect(() => {
         const fetchGroups = async () => {
             if (!auth.currentUser) return;
@@ -35,7 +35,7 @@ export default function EditGroup() {
         fetchGroups();
     }, []);
 
-    // 選択中グループのメンバー情報を取得
+    // get member info
     useEffect(() => {
         const fetchMembers = async () => {
             const group = groups[currentGroupIndex];
@@ -59,7 +59,7 @@ export default function EditGroup() {
         fetchMembers();
     }, [groups, currentGroupIndex]);
 
-    // グループ切り替え
+    // switch groups
     const handleSwitchGroup = (index) => {
         const group = groups[index];
         setCurrentGroupIndex(index);
@@ -70,7 +70,7 @@ export default function EditGroup() {
         setSuccessMessage('');
     };
 
-    // 保存
+    // save
     const handleSaveGroup = async () => {
         setErrors([]);
         setSuccessMessage('');
@@ -104,7 +104,7 @@ export default function EditGroup() {
         }
     };
 
-    // シェア
+    // share
     const handleShare = () => {
         if (navigator.share) {
             navigator.share({
@@ -127,9 +127,9 @@ export default function EditGroup() {
                 </svg>
             </button>
 
-            <h1 className="mt-12 text-2xl font-semibold">Edit Group</h1>
+            <h1 className="text-2xl font-semibold">Your groups</h1>
 
-            {/* グループ切り替えボタン */}
+            {/* group swtich button */}
             <div className="flex flex-wrap gap-3 mt-5 max-w-sm px-6">
                 {groups.map((group, index) => (
                     <button
@@ -142,7 +142,6 @@ export default function EditGroup() {
                 ))}
             </div>
 
-            {/* フォーム */}
             <div className="px-6 py-8 w-full max-w-sm flex flex-col gap-6">
                 {/* Group ID */}
                 <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">

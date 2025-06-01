@@ -10,7 +10,7 @@ export default function Hashtags() {
     const [successMessage, setSuccessMessage] = useState('');
     const [errors, setErrors] = useState([]);
 
-    // ユーザのハッシュタグを取得
+    // get hashtags
     useEffect(() => {
         const fetchHashtags = async () => {
             if (!auth.currentUser) return;
@@ -36,14 +36,14 @@ export default function Hashtags() {
         fetchHashtags();
     }, []);
 
-    // オンオフ切り替え
+    // hashtag swutches
     const toggleShowInFeed = (index) => {
         const updated = [...hashtags];
         updated[index].show_in_feed = !updated[index].show_in_feed;
         setHashtags(updated);
     };
 
-    // 保存
+    // save
     const handleSave = async () => {
         setIsLoading(true);
         setErrors([]);
@@ -68,20 +68,21 @@ export default function Hashtags() {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
-            {/* 戻る */}
+            {/* back */}
             <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
                     <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
                 </svg>
             </button>
 
-            <h1 className="mt-12 text-2xl font-semibold">Hashtags shown in homefeed</h1>
+            <h1 className="text-xl font-semibold">Choose hashtags</h1>
+            <h1 className="text-xl font-semibold mb-5">shown in homefeed</h1>
 
-            {/* ローディング */}
+            {/* loading */}
             {isLoading ? (
                 <p className="mt-10 text-center">Loading hashtags...</p>
             ) : (
-                <div className="flex flex-wrap gap-3 mt-5 max-w-sm px-6 justify-center">
+                <div className="flex flex-wrap gap-5 mt-5 max-w-sm px-6 justify-center">
                     {hashtags.map((hashtag, index) => (
                         <button
                             key={hashtag.id}
@@ -95,17 +96,17 @@ export default function Hashtags() {
                 </div>
             )}
 
-            {/* 保存 */}
+            {/* save */}
             <button
                 onClick={handleSave}
                 disabled={isLoading}
-                className={`py-2 px-4 mt-8 rounded-lg font-medium text-center transition-colors text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'
+                className={`py-2 px-4 mt-10 rounded-lg font-medium text-center transition-colors text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'
                     }`}
             >
                 {isLoading ? 'Saving...' : 'Save'}
             </button>
 
-            {/* エラーメッセージ */}
+            {/* errors */}
             {errors.length > 0 && (
                 <div className="max-w-xs mt-4 p-3 text-red-600 text-sm font-medium space-y-1">
                     {errors.map((error, i) => (
@@ -114,7 +115,7 @@ export default function Hashtags() {
                 </div>
             )}
 
-            {/* 成功メッセージ */}
+            {/* success */}
             {successMessage && (
                 <div className="max-w-xs mt-4 p-3 text-[#0A4A6E] text-sm font-medium">
                     {successMessage}

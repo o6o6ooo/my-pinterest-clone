@@ -61,15 +61,15 @@ function App() {
         </Route>
       </Routes>
 
-      {/* アップロードオーバーレイ */}
+      {/* upload overlay */}
       <UploadOverlay
         isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)} // オーバーレイを閉じる
+        onClose={() => setIsUploadOpen(false)} // close overlay
       />
 
-      {/* ナビゲーションバー */}
+      {/* nav bar */}
       <BottomNavBar
-        onUploadClick={() => setIsUploadOpen(true)} // オーバーレイを開く
+        onUploadClick={() => setIsUploadOpen(true)} // open overlay
       />
     </>
   );

@@ -17,7 +17,7 @@ export default function VerifyEmail() {
                     navigate('/home');
                 }
             }
-        }, 3000); // 3秒ごとにチェック
+        }, 3000); // check if verified in every 3 seconds
 
         return () => clearInterval(interval);
     }, [navigate]);
@@ -26,9 +26,8 @@ export default function VerifyEmail() {
         const user = auth.currentUser;
         if (user) {
             try {
-                await user.reload(); // ユーザ情報を最新化
-                // トークンを強制リフレッシュ（オプション）
-                await user.getIdToken(true);
+                await user.reload(); // refresh user info
+                await user.getIdToken(true); // refresh token
 
                 await sendEmailVerification(user);
                 setMessage(`Verification email sent to ${user.email} again!`);
@@ -45,13 +44,13 @@ export default function VerifyEmail() {
         const user = auth.currentUser;
         if (user) {
             try {
-                // Firestore のユーザドキュメント削除
+                // delete user in Firestore
                 await deleteDoc(doc(db, "users", user.uid));
 
-                // Authentication のユーザ削除
+                // delete user in Authentication
                 await deleteUser(user);
 
-                // `/auth` に戻る
+                // back to `/auth`
                 navigate("/auth");
             } catch (error) {
                 console.error("Failed to delete user:", error);

@@ -60,7 +60,7 @@ export default function ChangeEmail() {
                 </svg>
             </button>
 
-            <h1 className="mt-12 text-2xl font-semibold">Change Email</h1>
+            <h1 className="text-2xl font-semibold">Change Email</h1>
 
             <div className="mt-10 px-6 py-8 w-full max-w-sm flex flex-col gap-6">
                 {/* old email */}

@@ -13,7 +13,7 @@ export default function EditIcon() {
     const colours = ['#A5C3DE', '#F7C59F', '#DCD6F7', '#F6A6B2', '#C8E3D4', '#FFD6A5', '#D9E5FF', '#E6E6FA', '#FBE7A1', '#FFB3C1', '#FFF9B1', '#9AD4EB', '#A5D8F3', '#C7E9F1', '#FFB6B9', '#FADADD'];
     const [isLoading, setIsLoading] = useState(false);
 
-    // ⭐️ 現在のアイコンと色を取得
+    // get icon and background
     useEffect(() => {
         const fetchUserIcon = async () => {
             if (!auth.currentUser) return;
@@ -57,9 +57,9 @@ export default function EditIcon() {
                 </svg>
             </button>
 
-            <h1 className="mt-12 text-2xl font-semibold">Edit Icon</h1>
+            <h1 className="text-2xl font-semibold">Edit Icon</h1>
 
-            {/* 現在のアイコン */}
+            {/* current icon */}
             <div className="relative mt-8">
                 <div
                     className="w-24 h-24 rounded-full flex items-center justify-center text-4xl border-2 border-white shadow-md"
@@ -67,7 +67,7 @@ export default function EditIcon() {
                 >
                     {icon}
                 </div>
-                {/* ペンアイコン */}
+                {/* pen icon */}
                 <button
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-200"
@@ -78,7 +78,7 @@ export default function EditIcon() {
                 </button>
             </div>
 
-            {/* emoji-mart v5 ピッカー */}
+            {/* emoji oicker */}
             {showEmojiPicker && (
                 <div className="mt-4">
                     <Picker
@@ -91,7 +91,7 @@ export default function EditIcon() {
                 </div>
             )}
 
-            {/* カラー選択 */}
+            {/* choose background */}
             <div className="flex flex-wrap justify-center gap-3 mt-6 px-10 py-8">
                 {colours.map((colour, idx) => (
                     <div
@@ -103,7 +103,7 @@ export default function EditIcon() {
                 ))}
             </div>
 
-            {/* 保存 */}
+            {/* save */}
             <button
                 onClick={handleSave}
                 disabled={isLoading}

@@ -38,7 +38,7 @@ export default function SignUpForm() {
                 name: name,
                 email: email,
                 icon: '🌸',            // default icon
-                bgColour: '#FEEB6C',   // default icon background
+                bgColour: '#A5C3DE',   // default icon background
                 createdAt: serverTimestamp(),
             });
 
