@@ -20,6 +20,7 @@ import ChangePassword from './pages/User/ChangePassword';
 import EditGroup from './pages/User/EditGroup';
 import JoinGroup from './pages/User/JoinGroup';
 import EditProfileIcon from './pages/User/EditProfileIcon';
+import Hashtags from './pages/User/Hashtags';
 
 function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -56,6 +57,7 @@ function App() {
           <Route path="/user/change-password" element={<ChangePassword />} />
           <Route path="/user/edit-group" element={<EditGroup />} />
           <Route path="/user/edit-profile-icon" element={<EditProfileIcon />} />
+          <Route path="/user/hashtags" element={<Hashtags />} />
         </Route>
       </Routes>
 

@@ -23,7 +23,8 @@ export default function AuthProvider({ children }) {
         '/user/change-email',
         '/user/change-password',
         '/user/edit-group',
-        '/user/edit-profile-icon'
+        '/user/edit-profile-icon',
+        '/user/hashtags'
     ];
 
     useEffect(() => {
