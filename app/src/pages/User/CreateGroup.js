@@ -40,7 +40,7 @@ export default function CreateGroup() {
             const groupData = {
                 group_name: groupName,
                 group_id: lowerGroupId,
-                group_link: `https://my-pinterest-clone.com/group/${lowerGroupId}`,
+                group_link: `https://my-pinterest-clone.com/group/join/${lowerGroupId}`,
                 members: [currentUser.uid],
                 created_at: serverTimestamp(),
             };
