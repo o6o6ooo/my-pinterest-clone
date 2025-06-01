@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'; 
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../../firebase';
+import { auth, db } from '../../firebase';
 import { signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function UserSettings() {
     const navigate = useNavigate();
     const [userEmail, setUserEmail] = useState('');
     const [displayName, setDisplayName] = useState('');
+    const [icon, setIcon] = useState('😊');
+    const [bgColour, setbgColour] = useState('#FEEB6C');
 
     useEffect(() => {
         const currentUser = auth.currentUser;
@@ -14,6 +17,18 @@ export default function UserSettings() {
             setUserEmail(currentUser.email);
             setDisplayName(currentUser.displayName);
         }
+
+        const fetchUserIcon = async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                setIcon(data.icon || '😊');
+                setbgColour(data.bgColour || '#FEEB6C');
+            }
+        };
+        fetchUserIcon();
     }, []);
 
     const handleSignOut = async () => {
@@ -28,8 +43,21 @@ export default function UserSettings() {
 
     return (
         <div className="flex flex-col items-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 pt-10">
-            <div className="mt-10 w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center">
-            </div>{/* user icon */}
+            <div className="mt-10 relative w-24 h-24 rounded-full" style={{ backgroundColor: bgColour }}>
+                <span className="text-5xl flex items-center justify-center h-full">{icon}</span>
+
+                {/* ペンアイコンの小さい丸バッジ */}
+                <button className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-200">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="w-4 h-4 text-[#0A4A6E]"
+                    >
+                        <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
+                    </svg>
+                </button>
+            </div>
 
             {/* user name */}
             <h1 className="mt-8 text-xl font-semibold">{displayName}</h1>

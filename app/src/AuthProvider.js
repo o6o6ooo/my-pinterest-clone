@@ -17,9 +17,9 @@ export default function AuthProvider({ children }) {
                     }
                 } else {
                     // 認証済みで、かつ今が /home じゃなければ遷移
-                    if (!['/home', '/gallery', '/upload', '/notifications', '/user', '/post', '/user/create-group', '/user/change-email', '/user/change-password', '/user/edit-group'].includes(location.pathname)) {
+                    if (!['/home', '/gallery', '/upload', '/notifications', '/user', '/post', '/user/create-group', '/user/change-email', '/user/change-password', '/user/edit-group'].some(path => location.pathname.startsWith(path)) && !location.pathname.startsWith('/group/join')) {
                         navigate('/home');
-                    }
+                      }
                 }
             } else {
                 if (location.pathname !== '/auth') {
