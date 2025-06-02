@@ -6,6 +6,7 @@ import EyeIcon from '../../components/EyeIcon';
 import EyeSlashIcon from '../../components/EyeSlashIcon';
 import { db } from '../../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import cleanInput from '../../utils/cleanInput';
 
 export default function SignUpForm() {
     const [email, setEmail] = useState('');
