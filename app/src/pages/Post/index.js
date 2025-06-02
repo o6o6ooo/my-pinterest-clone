@@ -107,7 +107,7 @@ export default function Post() {
                 // 追加: ユーザのハッシュタグ設定を保存（ON状態）
                 const userId = auth.currentUser.uid;
                 await Promise.all(tags.map(async (tag) => {
-                    const docId = `${userId}_${tag.toLowerCase()}`;
+                    const docId = ` ${userId}_${tag.toLowerCase()}_${selectedGroup.id}`;
                     const settingRef = doc(db, 'user_hashtag_settings', docId);
                     await setDoc(settingRef, {
                         user_id: userId,
