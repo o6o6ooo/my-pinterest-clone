@@ -208,7 +208,7 @@ export default function HomeFeed() {
 
             const newTags = tags.filter(tag => !existingTags.includes(tag.toLowerCase()));
             await Promise.all(newTags.map(async (tag) => {
-                const docId = ` ${userId}_${tag.toLowerCase()}_${selectedPhoto.group_id}`;
+                const docId = `${userId}_${tag.toLowerCase()}_${selectedPhoto.group_id}`;
                 const settingRef = doc(db, 'user_hashtag_settings', docId);
                 await setDoc(settingRef, {
                     user_id: userId,
