@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, where, doc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import Masonry from 'react-masonry-css';
@@ -47,22 +47,23 @@ export default function HomeFeed() {
             setGroups(groupData);
         };
 
-        const fetchHashtags = async () => {
+        const fetchUserHashtags = async () => {
+            if (!auth.currentUser) return;
+
             const q = query(
-                collection(db, 'hashtags'),
-                where('user_id', '==', auth.currentUser.uid)
+                collection(db, 'user_hashtag_settings'),
+                where('user_id', '==', auth.currentUser.uid),
+                where('show_in_feed', '==', true)
             );
             const snapshot = await getDocs(q);
-            const hashtagData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setHashtags(hashtagData);
+            const data = snapshot.docs.map(doc => doc.data());
+            setHashtags(data);
         };
 
         fetchPhotos();
         fetchGroups();
-        fetchHashtags();
+        fetchUserHashtags();
+
     }, []);
 
     const tabs = [
@@ -182,34 +183,47 @@ export default function HomeFeed() {
     // save update
     const handleSaveEdit = async () => {
         if (!selectedPhoto) return;
-
         setIsLoading(true);
 
         try {
             const photoRef = doc(db, 'photos', selectedPhoto.id);
 
-            // Firestoreに保存するデータ作成
-            const updatedData = {
-                year: year || null,
-            };
-
+            const updatedData = { year: year || null };
             if (tags.length > 0) {
                 updatedData.hashtags = tags.map(tag => tag.toLowerCase());
             }
 
             await updateDoc(photoRef, updatedData);
 
-            // ローカルのphotos状態を更新
-            setPhotos(prevPhotos =>
-                prevPhotos.map(photo =>
-                    photo.id === selectedPhoto.id ? { ...photo, ...updatedData } : photo
-                )
+            // 追加: 新しく追加されたタグだけ user_hashtag_settings に保存
+            const userId = auth.currentUser.uid;
+
+            // 既に保存されているユーザ設定取得
+            const snapshot = await getDocs(query(
+                collection(db, 'user_hashtag_settings'),
+                where('user_id', '==', userId),
+                where('group_id', '==', selectedPhoto.group_id) 
+            ));
+            const existingTags = snapshot.docs.map(doc => doc.data().hashtag);
+
+            const newTags = tags.filter(tag => !existingTags.includes(tag.toLowerCase()));
+            await Promise.all(newTags.map(async (tag) => {
+                const docId = `${userId}_${tag.toLowerCase()}`;
+                const settingRef = doc(db, 'user_hashtag_settings', docId);
+                await setDoc(settingRef, {
+                    user_id: userId,
+                    hashtag: tag.toLowerCase(),
+                    group_id: selectedPhoto.group_id,
+                    show_in_feed: true,
+                    updated_at: new Date(),
+                }, { merge: true });
+            }));
+
+            // 更新
+            setPhotos(prev =>
+                prev.map(p => p.id === selectedPhoto.id ? { ...p, ...updatedData } : p)
             );
-
-            // プレビュー中の写真情報も更新
             setSelectedPhoto(prev => ({ ...prev, ...updatedData }));
-
-            // オーバーレイ閉じる
             setShowEditOverlay(false);
 
             alert('Photo details updated successfully!');
