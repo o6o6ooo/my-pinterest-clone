@@ -96,15 +96,25 @@ export default function Hashtags() {
         try {
             await Promise.all(
                 hashtags.map(async (hashtag) => {
-                    const docId = `${auth.currentUser.uid}_${hashtag.hashtag}`;
-                    const userSettingRef = doc(db, 'user_hashtag_settings', docId);
-                    await setDoc(userSettingRef, {
-                        user_id: auth.currentUser.uid,
-                        hashtag: hashtag.hashtag,
-                        group_id: hashtag.group_id,
-                        show_in_feed: hashtag.show_in_feed,
-                        updated_at: new Date(),
-                    }, { merge: true });
+                    // user_id と hashtag で複数のレコード取得
+                    const q = query(
+                        collection(db, 'user_hashtag_settings'),
+                        where('user_id', '==', auth.currentUser.uid),
+                        where('hashtag', '==', hashtag.hashtag)
+                    );
+                    const snapshot = await getDocs(q);
+
+                    // それぞれのレコードを更新
+                    await Promise.all(snapshot.docs.map(docSnapshot => {
+                        const userSettingRef = doc(db, 'user_hashtag_settings', docSnapshot.id);
+                        return setDoc(userSettingRef, {
+                            user_id: auth.currentUser.uid,
+                            hashtag: hashtag.hashtag,
+                            group_id: docSnapshot.data().group_id, // 既存のgroup_idを維持
+                            show_in_feed: hashtag.show_in_feed,
+                            updated_at: new Date(),
+                        }, { merge: true });
+                    }));
                 })
             );
             setSuccessMessage('Hashtags updated successfully!');
