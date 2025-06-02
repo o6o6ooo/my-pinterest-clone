@@ -3,6 +3,7 @@ import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/aut
 import { auth } from '../../firebase';
 import EyeIcon from '../../components/EyeIcon';
 import EyeSlashIcon from '../../components/EyeSlashIcon';
+import cleanInput from '../../utils/cleanInput';
 
 export default function SignInForm() {
     const [email, setEmail] = useState('');
@@ -66,7 +67,7 @@ export default function SignInForm() {
                             type="email"
                             id="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => setEmail(cleanInput(e.target.value, { toLowerCase: false }))}
                             autoComplete="email"
                             className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
                             required
@@ -133,7 +134,7 @@ export default function SignInForm() {
                         type="email"
                         placeholder="Enter your email"
                         value={resetEmail}
-                        onChange={(e) => setResetEmail(e.target.value)}
+                            onChange={(e) => setResetEmail(cleanInput(e.target.value, { toLowerCase: false }))}
                         className="w-full border border-[#0A4A6E] rounded-lg p-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
                         required
                         disabled={loading}
