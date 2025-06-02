@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { db, storage, auth } from '../../firebase';
-import { collection, addDoc, serverTimestamp, getDocs, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, setDoc, doc } from 'firebase/firestore'; 
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function Post() {
@@ -61,23 +61,8 @@ export default function Post() {
         setYear(e.target.value);
       };
     
-    const saveHashtagsToFirestore = async (photoId) => {
-        const hashtagPromises = tags.map((tag) =>
-            addDoc(collection(db, 'hashtags'), {
-                user_id: auth.currentUser?.uid,
-                group_id: selectedGroup?.id,
-                hashtag: tag.toLowerCase(),
-                show_in_feed: false,
-                created_at: serverTimestamp(),
-                photo_id: photoId,
-            })
-        );
-        await Promise.all(hashtagPromises);
-    };
-
     // post
     const handleUpload = async () => {
-        console.log('Upload started');
 
         // validation check
         const newErrors = [];
@@ -92,9 +77,10 @@ export default function Post() {
         setErrors(newErrors);
         if (newErrors.length > 0) return;
 
-        // upload
         try {
             setIsLoading(true);
+
+            // upload to Cloudinary
             const formData = new FormData();
             formData.append('image', files[0]);
 
@@ -104,22 +90,33 @@ export default function Post() {
             });
 
             if (!response.ok) throw new Error('Upload failed.');
-
             const data = await response.json();
-            console.log('Upload successful:', data);
 
-            // save in firestore
             if (data.url) {
+                // save photo in Firestore
                 const photoData = {
                     photo_url: data.url,
-                    group_id: selectedGroup?.id,
+                    group_id: selectedGroup.id,
                     year: year || null,
-                    hashtags: tags,
+                    hashtags: tags.map(tag => tag.toLowerCase()),
                     created_at: serverTimestamp(),
                 };
 
-                const photoDocRef = await addDoc(collection(db, 'photos'), photoData);
-                await saveHashtagsToFirestore(photoDocRef.id);
+                await addDoc(collection(db, 'photos'), photoData);
+
+                // 追加: ユーザのハッシュタグ設定を保存（ON状態）
+                const userId = auth.currentUser.uid;
+                await Promise.all(tags.map(async (tag) => {
+                    const docId = `${userId}_${tag.toLowerCase()}_${selectedGroup.id}`;
+                    const settingRef = doc(db, 'user_hashtag_settings', docId);
+                    await setDoc(settingRef, {
+                        user_id: userId,
+                        hashtag: tag.toLowerCase(),
+                        group_id: selectedGroup.id,
+                        show_in_feed: true,
+                        updated_at: new Date(),
+                    }, { merge: true });
+                }));
 
                 alert('Upload and save complete!');
                 navigate('/home');
@@ -151,12 +148,6 @@ export default function Post() {
             navigate(-1);
         }
     }, [files, navigate]);
-
-    const mockGroups = [
-        { id: '1', name: 'Family' },
-        { id: '2', name: 'Friends' },
-        { id: '3', name: 'Work' },
-    ];
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 relative">

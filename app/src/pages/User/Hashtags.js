@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 
 export default function Hashtags() {
@@ -15,16 +15,60 @@ export default function Hashtags() {
         const fetchHashtags = async () => {
             if (!auth.currentUser) return;
             try {
-                const q = query(
-                    collection(db, 'hashtags'),
-                    where('user_id', '==', auth.currentUser.uid)
+                // 所属グループ取得
+                const groupSnapshot = await getDocs(query(
+                    collection(db, 'groups'),
+                    where('members', 'array-contains', auth.currentUser.uid)
+                ));
+                const groupIds = groupSnapshot.docs.map(doc => doc.id);
+
+                if (groupIds.length === 0) {
+                    setHashtags([]);
+                    return;
+                }
+
+                // 各グループの user_hashtag_settings を取得
+                const promises = groupIds.map(groupId =>
+                    getDocs(query(
+                        collection(db, 'user_hashtag_settings'),
+                        where('group_id', '==', groupId)
+                    ))
                 );
-                const snapshot = await getDocs(q);
-                const hashtagsData = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
-                setHashtags(hashtagsData);
+                const snapshots = await Promise.all(promises);
+
+                let allSettings = [];
+                snapshots.forEach(snapshot => {
+                    snapshot.docs.forEach(doc => {
+                        allSettings.push({ id: doc.id, ...doc.data() });
+                    });
+                });
+
+                // 自分の設定のみ取得
+                const settingSnapshot = await getDocs(query(
+                    collection(db, 'user_hashtag_settings'),
+                    where('user_id', '==', auth.currentUser.uid)
+                ));
+                const settingsMap = {};
+                settingSnapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    settingsMap[data.hashtag] = data.show_in_feed;
+                });
+
+                // 各ハッシュタグについて、自分の設定があればそれを使う。なければ必ずオフにする
+                const uniqueHashtagsMap = {};
+                allSettings.forEach(setting => {
+                    const tag = setting.hashtag;
+                    // まだマップにない場合 or 自分の設定が見つかったら更新
+                    if (!uniqueHashtagsMap[tag] || setting.user_id === auth.currentUser.uid) {
+                        uniqueHashtagsMap[tag] = {
+                            ...setting,
+                            show_in_feed: settingsMap.hasOwnProperty(tag) ? settingsMap[tag] : false
+                        };
+                    }
+                });
+
+                const mergedData = Object.values(uniqueHashtagsMap);
+                setHashtags(mergedData);
             } catch (error) {
                 console.error('Error fetching hashtags:', error);
                 setErrors(['Failed to load hashtags.']);
@@ -36,7 +80,7 @@ export default function Hashtags() {
         fetchHashtags();
     }, []);
 
-    // hashtag swutches
+    // hashtag switches
     const toggleShowInFeed = (index) => {
         const updated = [...hashtags];
         updated[index].show_in_feed = !updated[index].show_in_feed;
@@ -52,9 +96,38 @@ export default function Hashtags() {
         try {
             await Promise.all(
                 hashtags.map(async (hashtag) => {
-                    await updateDoc(doc(db, 'hashtags', hashtag.id), {
-                        show_in_feed: hashtag.show_in_feed,
-                    });
+                    const q = query(
+                        collection(db, 'user_hashtag_settings'),
+                        where('user_id', '==', auth.currentUser.uid),
+                        where('hashtag', '==', hashtag.hashtag)
+                    );
+                    const snapshot = await getDocs(q);
+
+                    if (snapshot.empty) {
+                        if (hashtag.group_id) {
+                            const docId = `${auth.currentUser.uid}_${hashtag.hashtag}_${hashtag.group_id}`;
+                            const userSettingRef = doc(db, 'user_hashtag_settings', docId);
+                            await setDoc(userSettingRef, {
+                                user_id: auth.currentUser.uid,
+                                hashtag: hashtag.hashtag,
+                                group_id: hashtag.group_id,
+                                show_in_feed: hashtag.show_in_feed,
+                                updated_at: new Date(),
+                            });
+                        }
+                    } else {
+                        // 既存レコードがある場合はすべて更新
+                        await Promise.all(snapshot.docs.map(docSnapshot => {
+                            const userSettingRef = doc(db, 'user_hashtag_settings', docSnapshot.id);
+                            return setDoc(userSettingRef, {
+                                user_id: auth.currentUser.uid,
+                                hashtag: hashtag.hashtag,
+                                group_id: docSnapshot.data().group_id,
+                                show_in_feed: hashtag.show_in_feed,
+                                updated_at: new Date(),
+                            }, { merge: true });
+                        }));
+                    }
                 })
             );
             setSuccessMessage('Hashtags updated successfully!');

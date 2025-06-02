@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, where, doc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import Masonry from 'react-masonry-css';
@@ -27,16 +27,9 @@ export default function HomeFeed() {
         768: 2,
     };
 
-    // get photos, hashtags and groups
+    // fetch groups, photos and hashtags
     useEffect(() => {
         if (!auth.currentUser) return;
-
-        const fetchPhotos = async () => {
-            const q = query(collection(db, 'photos'));
-            const snapshot = await getDocs(q);
-            const photoData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setPhotos(photoData);
-        };
 
         const fetchGroups = async () => {
             const q = query(collection(db, 'groups'));
@@ -45,25 +38,64 @@ export default function HomeFeed() {
                 .map(doc => ({ id: doc.id, ...doc.data() }))
                 .filter(group => group.members.includes(auth.currentUser.uid));
             setGroups(groupData);
+            return groupData;
         };
 
-        const fetchHashtags = async () => {
+        const fetchPhotos = async () => {
+            const q = query(collection(db, 'photos'));
+            const snapshot = await getDocs(q);
+            const photoData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setPhotos(photoData);
+        };
+
+        const fetchUserHashtags = async () => {
+            if (!auth.currentUser) return;
+
             const q = query(
-                collection(db, 'hashtags'),
-                where('user_id', '==', auth.currentUser.uid)
+                collection(db, 'user_hashtag_settings'),
+                where('user_id', '==', auth.currentUser.uid),
+                where('show_in_feed', '==', true)
             );
             const snapshot = await getDocs(q);
-            const hashtagData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setHashtags(hashtagData);
+            const data = snapshot.docs.map(doc => doc.data());
+            setHashtags(data);
         };
 
-        fetchPhotos();
-        fetchGroups();
-        fetchHashtags();
+        (async () => {
+            await fetchGroups();
+            await fetchPhotos();
+            await fetchUserHashtags();
+        })();
     }, []);
+
+    // filter photos by user's groups
+    const userGroupIds = groups.map(g => g.id);
+
+    const filteredPhotos = photos.filter(photo => {
+        // exclude photos not in user's groups
+        if (!userGroupIds.includes(photo.group_id)) return false;
+
+        if (selectedTab === 'all') return true;
+        if (selectedTab === 'favourites') return photo.favourites?.includes(auth.currentUser.uid);
+        if (selectedTab.startsWith('group-')) {
+            const groupId = selectedTab.replace('group-', '');
+            return photo.group_id === groupId;
+        }
+        if (selectedTab.startsWith('hashtag-')) {
+            const hashtag = selectedTab.replace('hashtag-', '').toLowerCase();
+            return photo.hashtags?.some(tag => tag.toLowerCase() === hashtag);
+        }
+        return true;
+    });
+
+    // dedupe hashtags by lowercase tag text for tab bar
+    const uniqueHashtags = Object.values(
+        hashtags.reduce((acc, tag) => {
+            const lowerTag = tag.hashtag.toLowerCase();
+            if (!acc[lowerTag]) acc[lowerTag] = tag;
+            return acc;
+        }, {})
+    );
 
     const tabs = [
         { key: 'all', label: 'All' },
@@ -72,31 +104,16 @@ export default function HomeFeed() {
             key: `group-${group.id}`,
             label: `Group: ${group.group_name}`,
         })),
-        ...hashtags.map(tag => ({
+        ...uniqueHashtags.map(tag => ({
             key: `hashtag-${tag.hashtag}`,
             label: tag.hashtag,
         })),
     ];
 
-    // filtering
-    const filteredPhotos = photos.filter(photo => {
-        if (selectedTab === 'all') return true;
-        if (selectedTab === 'favourites') return photo.favourites?.includes(auth.currentUser.uid);
-        if (selectedTab.startsWith('group-')) {
-            const groupId = selectedTab.replace('group-', '');
-            return photo.group_id === groupId;
-        }
-        if (selectedTab.startsWith('hashtag-')) {
-            const hashtag = selectedTab.replace('hashtag-', '');
-            // ハッシュタグは小文字で保存している想定なので小文字比較を推奨
-            return photo.hashtags?.some(tag => tag.toLowerCase() === hashtag.toLowerCase());
-        }
-        return true;
-    });
-
-    // fovourite switch
+    // favourite toggle
     const handleToggleFavourite = async (photoId) => {
         if (!auth.currentUser) return;
+        if (!selectedPhoto) return;
 
         const photoRef = doc(db, 'photos', photoId);
         const isFavourite = selectedPhoto.favourites?.includes(auth.currentUser.uid);
@@ -108,9 +125,8 @@ export default function HomeFeed() {
                     : arrayUnion(auth.currentUser.uid),
             });
 
-            // save favourite
-            setPhotos((prevPhotos) =>
-                prevPhotos.map((photo) =>
+            setPhotos(prevPhotos =>
+                prevPhotos.map(photo =>
                     photo.id === photoId
                         ? {
                             ...photo,
@@ -122,7 +138,7 @@ export default function HomeFeed() {
                 )
             );
 
-            setSelectedPhoto((prev) => ({
+            setSelectedPhoto(prev => ({
                 ...prev,
                 favourites: isFavourite
                     ? prev.favourites.filter(uid => uid !== auth.currentUser.uid)
@@ -134,7 +150,7 @@ export default function HomeFeed() {
         }
     };
 
-    // open/close preview
+    // preview open/close
     const openPreview = (photo) => {
         setSelectedPhoto(photo);
         setShowPreview(true);
@@ -155,6 +171,7 @@ export default function HomeFeed() {
         };
     }, [showPreview]);
 
+    // edit overlay open
     const openEditOverlay = () => {
         if (selectedPhoto?.hashtags?.length) {
             setTags(selectedPhoto.hashtags);
@@ -179,37 +196,49 @@ export default function HomeFeed() {
         }
     };
 
-    // save update
+    // save edit update
     const handleSaveEdit = async () => {
         if (!selectedPhoto) return;
-
         setIsLoading(true);
 
         try {
             const photoRef = doc(db, 'photos', selectedPhoto.id);
 
-            // Firestoreに保存するデータ作成
-            const updatedData = {
-                year: year || null,
-            };
-
+            const updatedData = { year: year || null };
             if (tags.length > 0) {
                 updatedData.hashtags = tags.map(tag => tag.toLowerCase());
             }
 
             await updateDoc(photoRef, updatedData);
 
-            // ローカルのphotos状態を更新
-            setPhotos(prevPhotos =>
-                prevPhotos.map(photo =>
-                    photo.id === selectedPhoto.id ? { ...photo, ...updatedData } : photo
-                )
+            const userId = auth.currentUser.uid;
+
+            // get existing user hashtag settings by user + group
+            const snapshot = await getDocs(query(
+                collection(db, 'user_hashtag_settings'),
+                where('user_id', '==', userId),
+                where('group_id', '==', selectedPhoto.group_id)
+            ));
+            const existingTags = snapshot.docs.map(doc => doc.data().hashtag);
+
+            const newTags = tags.filter(tag => !existingTags.includes(tag.toLowerCase()));
+
+            await Promise.all(newTags.map(async (tag) => {
+                const docId = `${userId}_${tag.toLowerCase()}_${selectedPhoto.group_id}`;
+                const settingRef = doc(db, 'user_hashtag_settings', docId);
+                await setDoc(settingRef, {
+                    user_id: userId,
+                    hashtag: tag.toLowerCase(),
+                    group_id: selectedPhoto.group_id,
+                    show_in_feed: true,
+                    updated_at: new Date(),
+                }, { merge: true });
+            }));
+
+            setPhotos(prev =>
+                prev.map(p => p.id === selectedPhoto.id ? { ...p, ...updatedData } : p)
             );
-
-            // プレビュー中の写真情報も更新
             setSelectedPhoto(prev => ({ ...prev, ...updatedData }));
-
-            // オーバーレイ閉じる
             setShowEditOverlay(false);
 
             alert('Photo details updated successfully!');
