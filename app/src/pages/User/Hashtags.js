@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore'; 
+import { collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 
 export default function Hashtags() {
@@ -43,12 +43,27 @@ export default function Hashtags() {
                     });
                 });
 
-                // 同じハッシュタグが複数あった場合は自分の設定を優先
+                // 自分の設定のみ取得
+                const settingSnapshot = await getDocs(query(
+                    collection(db, 'user_hashtag_settings'),
+                    where('user_id', '==', auth.currentUser.uid)
+                ));
+                const settingsMap = {};
+                settingSnapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    settingsMap[data.hashtag] = data.show_in_feed;
+                });
+
+                // 各ハッシュタグについて、自分の設定があればそれを使う。なければ必ずオフにする
                 const uniqueHashtagsMap = {};
                 allSettings.forEach(setting => {
                     const tag = setting.hashtag;
+                    // まだマップにない場合 or 自分の設定が見つかったら更新
                     if (!uniqueHashtagsMap[tag] || setting.user_id === auth.currentUser.uid) {
-                        uniqueHashtagsMap[tag] = setting;
+                        uniqueHashtagsMap[tag] = {
+                            ...setting,
+                            show_in_feed: settingsMap.hasOwnProperty(tag) ? settingsMap[tag] : false
+                        };
                     }
                 });
 
@@ -64,7 +79,7 @@ export default function Hashtags() {
 
         fetchHashtags();
     }, []);
-    
+
     // hashtag switches
     const toggleShowInFeed = (index) => {
         const updated = [...hashtags];
