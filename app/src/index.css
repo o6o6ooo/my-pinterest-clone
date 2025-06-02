@@ -44,3 +44,35 @@ code {
 .slow-spin {
   animation: slow-spin 4s linear infinite;
 }
+
+.my-masonry-grid {
+  display: -webkit-box;
+  /* 不要かも。ブラウザ互換用 */
+  display: -ms-flexbox;
+  display: flex;
+  margin-left: -10px;
+  /* 隙間 */
+  width: auto;
+}
+
+.my-masonry-grid_column {
+  padding-left: 10px;
+  background-clip: padding-box;
+}
+
+.my-masonry-grid_column>div {
+  margin-bottom: 10px;
+  /* 追加！ */
+}
+
+/* 横スクロールバーを非表示（必要な場合だけ） */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE・Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}

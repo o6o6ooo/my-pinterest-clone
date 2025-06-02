@@ -68,7 +68,7 @@ export default function BottomNavBar({ onUploadClick }) { // onUploadClick受け
     ];
 
     return (
-        <nav className="fixed bottom-0 left-10 right-10 flex justify-between px-5 py-4 z-50 md:hidden" style={{ height: '100px' }}>
+        <nav className="fixed bottom-0 left-0 right-0 flex justify-between px-10 py-4 z-50 md:hidden bg-[#A5C3DE]" style={{ height: '100px' }}>
             {/* home, gallery */}
             {tabs.slice(0, 2).map(({ name, to, Icon }) => (
                 <NavLink
