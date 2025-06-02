@@ -112,6 +112,7 @@ export default function Post() {
                     await setDoc(settingRef, {
                         user_id: userId,
                         hashtag: tag.toLowerCase(),
+                        group_id: selectedGroup.id,
                         show_in_feed: true,
                         updated_at: new Date(),
                     }, { merge: true });
