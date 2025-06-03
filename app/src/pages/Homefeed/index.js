@@ -3,6 +3,7 @@ import { collection, getDocs, query, where, doc, setDoc, updateDoc, arrayUnion, 
 import { db, auth } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import Masonry from 'react-masonry-css';
+import cleanInput from '../../utils/cleanInput';
 
 export default function HomeFeed() {
     const navigate = useNavigate();
@@ -186,11 +187,9 @@ export default function HomeFeed() {
     const handleTagKeyDown = (e) => {
         if (e.key === 'Enter' && tagInput.trim() !== '') {
             e.preventDefault();
-            const lowerCaseTag = tagInput.toLowerCase().startsWith('#')
-                ? tagInput.toLowerCase()
-                : '#' + tagInput.toLowerCase();
-            if (!tags.includes(lowerCaseTag)) {
-                setTags([...tags, lowerCaseTag]);
+            const cleaned = cleanInput(tagInput, { toLowerCase: true, ensureHash: true });
+            if (!tags.includes(cleaned)) {
+                setTags([...tags, cleaned]);
             }
             setTagInput('');
         }
@@ -388,7 +387,7 @@ export default function HomeFeed() {
                                 pattern="[0-9]*"
                                 id="year"
                                 value={year}
-                                onChange={(e) => setYear(e.target.value)}
+                                onChange={(e) => setYear(cleanInput(e.target.value, { toLowerCase: false }))}
                                 className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
                             />
                         </div>
@@ -402,7 +401,7 @@ export default function HomeFeed() {
                                 <input
                                     id="tag"
                                     value={tagInput}
-                                    onChange={(e) => setTagInput(e.target.value)}
+                                    onChange={(e) => setTagInput(cleanInput(e.target.value, { toLowerCase: false }))}
                                     onKeyDown={handleTagKeyDown}
                                     className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
                                     placeholder=""

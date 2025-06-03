@@ -3,6 +3,7 @@ import { updateEmail, getAuth } from 'firebase/auth';
 import { auth, db } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
+import cleanInput from '../../utils/cleanInput';
 
 export default function ChangeEmail() {
     const [oldEmail, setOldEmail] = useState('');
@@ -82,7 +83,7 @@ export default function ChangeEmail() {
                     <input
                         type="email"
                         value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
+                        onChange={(e) => setNewEmail(cleanInput(e.target.value, { toLowerCase: false }))}
                         className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
                     />
                 </div>

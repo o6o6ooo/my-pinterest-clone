@@ -6,6 +6,7 @@ import EyeIcon from '../../components/EyeIcon';
 import EyeSlashIcon from '../../components/EyeSlashIcon';
 import { db } from '../../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import cleanInput from '../../utils/cleanInput';
 
 export default function SignUpForm() {
     const [email, setEmail] = useState('');
@@ -86,7 +87,7 @@ export default function SignUpForm() {
                     type="email"
                     id="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => setEmail(cleanInput(e.target.value, { toLowerCase: false }))}
                     autoComplete="email"
                     className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
                     required

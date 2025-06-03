@@ -4,7 +4,6 @@ import Splash from './pages/Splash';
 import InvitationCode from './pages/InvitationCode';
 import Auth from './pages/Auth';
 import HomeFeed from './pages/Homefeed';
-import Gallery from './pages/Gallery';
 import Notifications from './pages/Notifications';
 import User from './pages/User';
 import VerifyEmail from './pages/VerifyEmail';
@@ -46,7 +45,6 @@ function App() {
         <Route path="/group/join/:groupId" element={<JoinGroup />} />
         <Route element={<MainLayout />}>
           <Route path="/home" element={<HomeFeed />} />
-          <Route path="/gallery" element={<Gallery />} />
           <Route path="/upload" element={<Post />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/user" element={<User />} />

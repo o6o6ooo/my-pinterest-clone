@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { db, storage, auth } from '../../firebase';
 import { collection, addDoc, serverTimestamp, getDocs, setDoc, doc } from 'firebase/firestore'; 
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import cleanInput from '../../utils/cleanInput';
 
 export default function Post() {
     const location = useLocation();
@@ -23,22 +24,13 @@ export default function Post() {
         setShowFullScreen(true);
     };
 
-    // add "#" to hashtags 
-    const handleTagInputChange = (e) => {
-        let value = e.target.value;
-        if (!value.startsWith('#')) {
-            value = '#' + value;
-        }
-        setTagInput(value);
-    };
-
     // when hit enter confirms the hashtag
     const handleTagKeyDown = (e) => {
         if (e.key === 'Enter' && tagInput.trim() !== '') {
             e.preventDefault();
-            const lowerCaseTag = tagInput.toLowerCase();
-            if (!tags.includes(lowerCaseTag)) {
-                setTags([...tags, lowerCaseTag]);
+            const cleaned = cleanInput(tagInput, { toLowerCase: true, ensureHash: true });
+            if (!tags.includes(cleaned)) {
+                setTags([...tags, cleaned]);
             }
             setTagInput('');
         }
@@ -198,7 +190,7 @@ export default function Post() {
                     <input
                         id="tag"
                         value={tagInput}
-                        onChange={handleTagInputChange}
+                        onChange={(e) => setTagInput(cleanInput(e.target.value, { toLowerCase: false }))}
                         onKeyDown={handleTagKeyDown}
                         className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
                         placeholder=""
