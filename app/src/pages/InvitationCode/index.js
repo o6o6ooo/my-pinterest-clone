@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PasteIcon from '../../components/PasteIcon';
 
@@ -6,6 +6,13 @@ export default function InvitationCode() {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const verified = localStorage.getItem('invitationVerified');
+        if (verified === 'true') {
+            navigate('/auth');
+        }
+    }, [navigate]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -18,6 +25,7 @@ export default function InvitationCode() {
             setError('The invitation code is incorrect.');
         } else {
             setError('');
+            localStorage.setItem('invitationVerified', 'true');
             console.log('Correct code!');
             navigate('/auth');
         }

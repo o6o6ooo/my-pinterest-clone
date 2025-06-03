@@ -4,7 +4,6 @@
  * - convert to lowercase
  * @param {string} input
  * @param {Object} options
- * @param {boolean} [options.toLowerCase=false]
  * @returns {string} formatted value
  */
 export default function cleanInput(input, { toLowerCase = false, ensureHash = false } = {}) {
