@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, updateDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db } from '../../firebase';
+import cleanInput from '../../utils/cleanInput';
 
 export default function EditGroup() {
     const navigate = useNavigate();
@@ -89,12 +90,12 @@ export default function EditGroup() {
         try {
             const updatedData = {
                 group_name: groupName,
-                group_id: groupId.toLowerCase(),
-                group_link: `https://my-pinterest-clone.com/group/${groupId.toLowerCase()}`,
+                group_id: groupId,
+                group_link: groupLink,
             };
 
-            await updateDoc(doc(db, 'groups', groupId.toLowerCase()), updatedData);
-            setSuccessMessage('Group updated successfully!');
+            const originalDocId = groups[currentGroupIndex].id;
+            await updateDoc(doc(db, 'groups', originalDocId), updatedData);            setSuccessMessage('Group updated successfully!');
             setGroupLink(updatedData.group_link);
         } catch (error) {
             console.error('Group update error:', error);
@@ -150,9 +151,9 @@ export default function EditGroup() {
                         type="text"
                         value={groupId}
                         onChange={(e) => {
-                            const id = e.target.value;
-                            setGroupId(id);
-                            setGroupLink(`https://your-app.com/group/join/${id.toLowerCase()}`);
+                            const cleanedId = cleanInput(e.target.value, { toLowerCase: true });
+                            setGroupId(cleanedId);
+                            setGroupLink(`https://your-app.com/group/join/${cleanedId}`);
                         }}
                         className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
                     />
@@ -164,7 +165,7 @@ export default function EditGroup() {
                     <input
                         type="text"
                         value={groupName}
-                        onChange={(e) => setGroupName(e.target.value)}
+                        onChange={(e) => setGroupName(cleanInput(e.target.value, { toLowerCase: false }))}
                         className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
                     />
                 </div>
