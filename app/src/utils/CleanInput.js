@@ -7,16 +7,13 @@
  * @param {boolean} [options.toLowerCase=false]
  * @returns {string} formatted value
  */
-export function cleanInput(input, { toLowerCase = false } = {}) {
-    if (typeof input !== 'string') return input;
-
-    // remove spaces
-    let cleaned = input.replace(/^[\s\u3000]+|[\s\u3000]+$/g, '');
-
-    // convert to lowercase if needed
-    if (toLowerCase) {
-        cleaned = cleaned.toLowerCase();
+export default function cleanInput(input, { toLowerCase = false, removeAllSpaces = false } = {}) {
+    let result = input.trim();
+    if (removeAllSpaces) {
+        result = result.replace(/\s+/g, '');
     }
-
-    return cleaned;
-  }
+    if (toLowerCase) {
+        result = result.toLowerCase();
+    }
+    return result;
+}
