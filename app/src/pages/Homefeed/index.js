@@ -187,12 +187,9 @@ export default function HomeFeed() {
     const handleTagKeyDown = (e) => {
         if (e.key === 'Enter' && tagInput.trim() !== '') {
             e.preventDefault();
-            const cleanedTag = cleanInput(tagInput, { toLowerCase: true });
-            // もし # がついていなければ先頭に # をつける
-            const finalTag = cleanedTag.startsWith('#') ? cleanedTag : '#' + cleanedTag;
-
-            if (!tags.includes(finalTag)) {
-                setTags([...tags, finalTag]);
+            const cleaned = cleanInput(tagInput, { toLowerCase: true, ensureHash: true });
+            if (!tags.includes(cleaned)) {
+                setTags([...tags, cleaned]);
             }
             setTagInput('');
         }
