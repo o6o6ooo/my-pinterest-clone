@@ -9,7 +9,7 @@ export default function AuthProvider({ children }) {
     const location = useLocation();
 
     // pages open to public (not signed in)
-    const publicPages = ['/auth', '/verify-email', '/group/join'];
+    const publicPages = ['/auth', '/verify-email', '/group/join','/invite'];
 
     // pages only for signed in user
     const authPages = [
