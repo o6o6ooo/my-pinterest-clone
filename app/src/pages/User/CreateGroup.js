@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDoc, setDoc, doc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from '../../firebase';
+import cleanInput from '../../utils/cleanInput';
 
 export default function CreateGroup() {
     const navigate = useNavigate();
@@ -93,10 +94,10 @@ export default function CreateGroup() {
                         type="text"
                         value={groupId}
                         onChange={(e) => {
-                            const id = e.target.value;
-                            setGroupId(id);
-                            setGroupLink(`https://your-app.com/group/join/${id.toLowerCase()}`);
-                          }}
+                            const cleanedId = cleanInput(e.target.value, { toLowerCase: true });
+                            setGroupId(cleanedId);
+                            setGroupLink(`https://your-app.com/group/join/${cleanedId}`);
+                        }}
                         className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
                     />
                 </div>
@@ -107,7 +108,7 @@ export default function CreateGroup() {
                     <input
                         type="text"
                         value={groupName}
-                        onChange={(e) => setGroupName(e.target.value)}
+                        onChange={(e) => setGroupName(cleanInput(e.target.value, { toLowerCase: false }))}
                         className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
                     />
                 </div>
