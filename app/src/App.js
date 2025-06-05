@@ -26,6 +26,10 @@ function App() {
   const showUploadOverlay = location.pathname === '/upload';
   const navigate = useNavigate();
 
+  // BottomNavBarを非表示にするパスのリスト
+  const hideNavBarPaths = ['/auth', '/verify-email', '/invite'];
+  const shouldShowNavBar = !hideNavBarPaths.some(path => location.pathname.startsWith(path));
+
   const openUploadOverlay = () => {
     navigate('/upload');
   };
@@ -63,10 +67,12 @@ function App() {
         onClose={() => setIsUploadOpen(false)} // close overlay
       />
 
-      {/* nav bar */}
-      <BottomNavBar
-        onUploadClick={() => setIsUploadOpen(true)} // open overlay
-      />
+      {/* nav bar - 特定のページでは非表示 */}
+      {shouldShowNavBar && (
+        <BottomNavBar
+          onUploadClick={() => setIsUploadOpen(true)}
+        />
+      )}
     </>
   );
 }
@@ -75,7 +81,7 @@ export default function AppWrapper() {
   return (
     <Router>
       <AuthProvider>
-          <App />
+        <App />
       </AuthProvider>
     </Router>
   );
