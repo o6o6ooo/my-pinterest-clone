@@ -39,7 +39,7 @@ function App() {
   };
 
   return (
-    <>
+    <div className="relative min-h-screen">
       <Routes>
         <Route path="/" element={<Splash />} />
         <Route path="/invite" element={<InvitationCode />} />
@@ -64,7 +64,7 @@ function App() {
       {/* upload overlay */}
       <UploadOverlay
         isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)} // close overlay
+        onClose={() => setIsUploadOpen(false)}
       />
 
       {/* nav bar - 特定のページでは非表示 */}
@@ -73,7 +73,7 @@ function App() {
           onUploadClick={() => setIsUploadOpen(true)}
         />
       )}
-    </>
+    </div>
   );
 }
 
