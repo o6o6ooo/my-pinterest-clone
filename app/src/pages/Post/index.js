@@ -76,7 +76,7 @@ export default function Post() {
             const formData = new FormData();
             formData.append('image', files[0]);
 
-            const response = await fetch('http://192.168.4.48:5001/api/upload', {
+            const response = await fetch('https://kuusi.onrender.com/api/upload', {
                 method: 'POST',
                 body: formData,
             });
