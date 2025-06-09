@@ -9,7 +9,7 @@ export default function AuthProvider({ children }) {
     const location = useLocation();
 
     // pages open to public (not signed in)
-    const publicPages = ['/auth', '/verify-email', '/group/join','/invite'];
+    const publicPages = ['/auth', '/verify-email', '/group/join', '/invite', '/'];
 
     // pages only for signed in user
     const authPages = [
@@ -63,9 +63,12 @@ export default function AuthProvider({ children }) {
                     }
 
                     // go to /home after normal sign in
-                    if (publicPages.some(path => location.pathname.startsWith(path))) {
+                    if (
+                        user &&
+                        joinGroupId === null &&
+                        publicPages.includes(location.pathname)
+                    ) {
                         navigate('/home');
-                        return;
                     }
 
                     // go to /home instead somewhere not allowed

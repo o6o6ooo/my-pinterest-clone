@@ -12,7 +12,6 @@ import BottomNavBar from './components/BottomNavBar';
 import MainLayout from './layouts/MainLayout';
 import UploadOverlay from './components/UploadOverlay';
 import Post from './pages/Post';
-import UserDashboard from './pages/User';
 import CreateGroup from './pages/User/CreateGroup';
 import ChangeEmail from './pages/User/ChangeEmail';
 import ChangePassword from './pages/User/ChangePassword';
@@ -27,6 +26,10 @@ function App() {
   const showUploadOverlay = location.pathname === '/upload';
   const navigate = useNavigate();
 
+  // BottomNavBarを非表示にするパスのリスト
+  const hideNavBarPaths = ['/auth', '/verify-email', '/invite'];
+  const shouldShowNavBar = !hideNavBarPaths.some(path => location.pathname.startsWith(path));
+
   const openUploadOverlay = () => {
     navigate('/upload');
   };
@@ -36,7 +39,7 @@ function App() {
   };
 
   return (
-    <>
+    <div className="relative min-h-screen">
       <Routes>
         <Route path="/" element={<Splash />} />
         <Route path="/invite" element={<InvitationCode />} />
@@ -49,7 +52,6 @@ function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/user" element={<User />} />
           <Route path="/post" element={<Post />} />
-          <Route path="/user" element={<UserDashboard />} />
           <Route path="/user/create-group" element={<CreateGroup />} />
           <Route path="/user/change-email" element={<ChangeEmail />} />
           <Route path="/user/change-password" element={<ChangePassword />} />
@@ -62,14 +64,16 @@ function App() {
       {/* upload overlay */}
       <UploadOverlay
         isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)} // close overlay
+        onClose={() => setIsUploadOpen(false)}
       />
 
-      {/* nav bar */}
-      <BottomNavBar
-        onUploadClick={() => setIsUploadOpen(true)} // open overlay
-      />
-    </>
+      {/* nav bar - 特定のページでは非表示 */}
+      {shouldShowNavBar && (
+        <BottomNavBar
+          onUploadClick={() => setIsUploadOpen(true)}
+        />
+      )}
+    </div>
   );
 }
 
@@ -77,7 +81,7 @@ export default function AppWrapper() {
   return (
     <Router>
       <AuthProvider>
-          <App />
+        <App />
       </AuthProvider>
     </Router>
   );

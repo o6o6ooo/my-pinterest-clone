@@ -34,7 +34,7 @@ export default function UserSettings() {
     const handleSignOut = async () => {
         try {
             await signOut(auth);
-            navigate('/signin');
+            navigate('/auth', { replace: true });
         } catch (error) {
             console.error('Sign out error:', error);
             alert('Failed to sign out. Please try again.');
