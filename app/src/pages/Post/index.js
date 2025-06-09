@@ -76,11 +76,15 @@ export default function Post() {
             const formData = new FormData();
             formData.append('image', files[0]);
 
-            const response = await fetch('https://kuusi.onrender.com/api/upload', {
+            const UPLOAD_URL =
+                process.env.NODE_ENV === 'development'
+                    ? 'http://localhost:5001/api/upload'
+                    : 'https://kuusi.onrender.com/api/upload';
+
+            const response = await fetch(UPLOAD_URL, {
                 method: 'POST',
                 body: formData,
-            });
-
+        });
             if (!response.ok) throw new Error('Upload failed.');
             const data = await response.json();
 
