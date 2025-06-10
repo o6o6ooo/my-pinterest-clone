@@ -47,7 +47,7 @@ export default function Splash() {
     }, [navigate]);
 
     return (
-        <div className="flex justify-center items-center h-screen bg-[#A5C3DE]">
+        <div className="flex justify-center items-center h-screen bg-[#A5C3DE]" data-testid="splash-screen">
             <SplashAnimation />
         </div>
     );
