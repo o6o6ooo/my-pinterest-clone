@@ -92,11 +92,12 @@ export default function Post() {
 
             if (!response.ok) throw new Error('Upload failed.');
             const data = await response.json();
+            console.log('Upload response data:', data);
 
-            if (data.url) {
+            if (data.public_id) {
                 // save photo in Firestore
                 const photoData = {
-                    photo_url: data.url,
+                    photo_url: data.public_id,
                     group_id: selectedGroup.id,
                     year: year || null,
                     hashtags: tags.map(tag => tag.toLowerCase()),
