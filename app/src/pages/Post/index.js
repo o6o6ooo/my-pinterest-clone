@@ -71,6 +71,7 @@ export default function Post() {
 
         try {
             setIsLoading(true);
+            const idToken = await auth.currentUser.getIdToken();
 
             // upload to Cloudinary
             const formData = new FormData();
@@ -83,15 +84,20 @@ export default function Post() {
 
             const response = await fetch(UPLOAD_URL, {
                 method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${idToken}`
+                },
                 body: formData,
-        });
+            });
+
             if (!response.ok) throw new Error('Upload failed.');
             const data = await response.json();
+            console.log('Upload response data:', data);
 
-            if (data.url) {
+            if (data.public_id) {
                 // save photo in Firestore
                 const photoData = {
-                    photo_url: data.url,
+                    photo_url: data.public_id,
                     group_id: selectedGroup.id,
                     year: year || null,
                     hashtags: tags.map(tag => tag.toLowerCase()),

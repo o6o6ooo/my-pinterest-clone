@@ -46,7 +46,35 @@ export default function HomeFeed() {
             const q = query(collection(db, 'photos'));
             const snapshot = await getDocs(q);
             const photoData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setPhotos(photoData);
+
+            // Cloudinary署名付きURLを取得
+            const idToken = await auth.currentUser.getIdToken();
+            const publicIds = photoData.map(photo => photo.photo_url);
+
+            const response = await fetch(
+                process.env.NODE_ENV === 'development'
+                    ? 'http://localhost:5001/api/cloudinary-signed-urls'
+                    : 'https://kuusi.onrender.com/api/cloudinary-signed-urls',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${idToken}`,
+                    },
+                    body: JSON.stringify({ publicIds }),
+                }
+            );
+
+            const signedUrls = await response.json();
+
+            // 各写真に署名付きURLを追加
+            const photoDataWithUrls = photoData.map(photo => ({
+                ...photo,
+                signedUrl: signedUrls[photo.photo_url],
+            }));
+
+            console.log('photourl:',signedUrls)
+            setPhotos(photoDataWithUrls);
         };
 
         const fetchUserHashtags = async () => {
@@ -284,7 +312,7 @@ export default function HomeFeed() {
                 {filteredPhotos.map(photo => (
                     <div key={photo.id} onClick={() => openPreview(photo)} className="relative cursor-pointer">
                         <img
-                            src={photo.photo_url}
+                            src={photo.signedUrl}
                             alt=""
                             className="w-full rounded-xl object-cover"
                         />
