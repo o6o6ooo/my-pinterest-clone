@@ -79,8 +79,6 @@ app.post('/api/upload', async (req, res) => {
     try {
         const uid = await verifyFirebaseToken(req);
 
-        console.log('req.files:', req.files);
-
         if (!req.files || !req.files.image) {
             return res.status(400).json({ error: 'No image file uploaded' });
         }
@@ -91,8 +89,6 @@ app.post('/api/upload', async (req, res) => {
             folder: 'my-pinterest-clone',
             type: 'authenticated', // 非公開用に必須
         });
-
-        console.log('Upload result:', result);
 
         const signedUrl = cloudinary.url(result.public_id, {
             type: 'authenticated',
