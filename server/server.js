@@ -20,9 +20,8 @@ app.use(fileUpload({
 }));
 
 // Firebase Admin 初期化
-const serviceAccount = JSON.parse(
-    fs.readFileSync('./kuusi-f06ab-firebase-adminsdk-fbsvc-c6e372e5cc.json', 'utf8')
-);
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
 });
