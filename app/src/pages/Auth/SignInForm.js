@@ -23,7 +23,6 @@ export default function SignInForm() {
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            console.log('Signed in successfully!');
         } catch (err) {
             setError('Failed to sign in. Please check your credentials.');
         } finally {
@@ -67,7 +66,7 @@ export default function SignInForm() {
                             type="email"
                             id="email"
                             value={email}
-                            onChange={(e) => setEmail(cleanInput(e.target.value, { toLowerCase: false }))}
+                            onChange={(e) => setEmail(cleanInput(e.target.value))}
                             autoComplete="email"
                             className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
                             required
