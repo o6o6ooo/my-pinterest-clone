@@ -25,3 +25,7 @@ yarn-debug.log*
 yarn-error.log*
 
 server/kuusi-f06ab-firebase-adminsdk-fbsvc-c6e372e5cc.json
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
