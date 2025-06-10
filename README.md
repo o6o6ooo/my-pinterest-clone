@@ -9,7 +9,7 @@ A littele Pinterest-look Progressive Web App built with React.
 ## 🏡 License
 This project is currently for private use only and is not licensed for public use, modification, or redistribution.
 
-## 🔐 Privacy & Security of Uploaded Photos
+## 🔐 Privacy & Security
 🇬🇧 All backend API endpoints require a valid Firebase ID token, and Firestore rules restrict access to authenticated users only.
 This ensures that:
 - Uploaded images cannot be accessed publicly.
@@ -22,4 +22,4 @@ This ensures that:
 - 写真は一般公開されません
 - 写真のアップロード・閲覧は ログイン中のユーザーのみ可能
 - Firestore のすべてのデータは 未認証ユーザーから保護
-- Cloudinaryの写真URLは ログイン後にのみ発行され、1時間で無効
+- Cloudinaryの写真URLはログイン後にのみ発行され、1時間で無効
