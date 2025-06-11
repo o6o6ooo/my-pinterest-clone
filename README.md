@@ -30,3 +30,6 @@ This ensures that:
 
 ### 11 June 2025
 - fixed photo preview
+- enabled automatic sign out 3 mins after closing app
+- improved upload overlay
+- added a overlay showing group members
