@@ -40,7 +40,7 @@ export default function CreateGroup() {
             const groupData = {
                 group_name: groupName,
                 group_id: lowerGroupId,
-                group_link: `https://my-pinterest-clone.com/group/join/${lowerGroupId}`,
+                group_link: `https://kuusi-f06ab.web.app/group/join/${lowerGroupId}`,
                 members: [currentUser.uid],
                 created_at: serverTimestamp(),
             };
@@ -95,7 +95,7 @@ export default function CreateGroup() {
                         onChange={(e) => {
                             const cleanedId = cleanInput(e.target.value, { toLowerCase: true });
                             setGroupId(cleanedId);
-                            setGroupLink(`https://your-app.com/group/join/${cleanedId}`);
+                            setGroupLink(`https://kuusi-f06ab.web.app/group/join/${cleanedId}`);
                         }}
                         className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
                     />
