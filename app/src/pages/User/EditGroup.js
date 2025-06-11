@@ -15,6 +15,7 @@ export default function EditGroup() {
     const [errors, setErrors] = useState([]);
     const [successMessage, setSuccessMessage] = useState('');
     const [members, setMembers] = useState([]);
+    const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
 
     // get group info
     useEffect(() => {
@@ -52,6 +53,7 @@ export default function EditGroup() {
                 return {
                     icon: userData.icon,
                     colour: userData.bgColour,
+                    name: userData.name,
                 };
             });
 
@@ -95,7 +97,8 @@ export default function EditGroup() {
             };
 
             const originalDocId = groups[currentGroupIndex].id;
-            await updateDoc(doc(db, 'groups', originalDocId), updatedData);            setSuccessMessage('Group updated successfully!');
+            await updateDoc(doc(db, 'groups', originalDocId), updatedData);            
+            setSuccessMessage('Group updated successfully!');
             setGroupLink(updatedData.group_link);
         } catch (error) {
             console.error('Group update error:', error);
@@ -193,7 +196,7 @@ export default function EditGroup() {
 
                 {/* Member icons */}
                 {members.length > 0 && (
-                    <div className="flex items-center justify-center space-x-[-10px]">
+                    <div className="flex items-center justify-center space-x-[-10px]" onClick={() => setIsMemberModalOpen(true)}>
                         {members.map((member, idx) => (
                             <div
                                 key={idx}
@@ -228,6 +231,27 @@ export default function EditGroup() {
                 {successMessage && (
                     <div className="max-w-xs mt-4 p-3 text-[#0A4A6E] text-sm font-medium">
                         {successMessage}
+                    </div>
+                )}
+
+                {/* members */}
+                {isMemberModalOpen && (
+                    <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center" onClick={() => setIsMemberModalOpen(false)}>
+                        <div className="bg-white rounded-xl shadow-lg p-4 w-70 max-h-[80vh] overflow-y-auto relative items-center border border-[#0A4A6E]" onClick={() => setIsMemberModalOpen(false)}>
+                            <div className="flex flex-col gap-4">
+                                {members.map((member, idx) => (
+                                    <div key={idx} className="flex items-center gap-3">
+                                        <div
+                                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xl border-2 border-white shadow-md"
+                                            style={{ backgroundColor: member.colour }}
+                                        >
+                                            {member.icon}
+                                        </div>
+                                        <span className="text-[#0A4A6E] text-sm font-semibold">{member.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
