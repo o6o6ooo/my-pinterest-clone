@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useNavigate, useLocation, NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 // Home
 const HomeIcon = ({ filled, className }) => filled ? (
