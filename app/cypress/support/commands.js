@@ -12,13 +12,6 @@
 // -- This is a parent command --
 // Cypress.Commands.add('login', (email, password) => { ... })
 
-Cypress.Commands.add('loginTestUser', () => {
-    // Sign in to Firebase Auth with test account
-    cy.window().then(async (win) => {
-        const firebase = win.firebase
-        await firebase.auth().signInWithEmailAndPassword('test@example.com', 'test1234')
-    })
-})
 //
 //
 // -- This is a child command --
@@ -31,3 +24,11 @@ Cypress.Commands.add('loginTestUser', () => {
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+Cypress.Commands.add('loginTestUser', () => {
+    // Sign in to Firebase Auth with test account
+    cy.window().then(async (win) => {
+        const firebase = win.firebase
+        await firebase.auth().signInWithEmailAndPassword('test@example.com', 'test1234')
+    })
+})
