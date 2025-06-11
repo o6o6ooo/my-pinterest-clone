@@ -30,7 +30,6 @@ export default function CreateGroup() {
 
         try {
             // check duplicate record on group id
-            const docRef = doc(db, 'groups', groupId);
             const groupDoc = await getDoc(doc(db, 'groups', lowerGroupId));
             if (groupDoc.exists()) {
                 newErrors.push('This group ID is already taken.');

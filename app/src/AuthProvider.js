@@ -88,6 +88,7 @@ export default function AuthProvider({ children }) {
         });
 
         return () => unsubscribe();
+        // eslint-disable-next-line
     }, [navigate, location]);
 
     return children;

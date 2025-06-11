@@ -40,7 +40,6 @@ export default function JoinGroup() {
                 }
             } catch (error) {
                 console.error('Error fetching group data:', error);
-                // 🔑 不要な二重alertを防ぐ
                 if (!auth.currentUser) {
                     console.log('User not signed in, skipping error alert.');
                 } else {
@@ -80,13 +79,6 @@ export default function JoinGroup() {
                                     {member.icon}
                                 </div>
                             ))}
-                        </div>
-                    )}
-
-                    {/* Members count */}
-                    {auth.currentUser && (
-                        <div className="flex text-base font-medium items-center justify-center">
-                            {members.length} {members.length === 1 ? 'member' : 'members'}
                         </div>
                     )}
 

@@ -1,8 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { db, storage, auth } from '../../firebase';
+import { db, auth } from '../../firebase';
 import { collection, addDoc, serverTimestamp, getDocs, setDoc, doc } from 'firebase/firestore'; 
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import cleanInput from '../../utils/cleanInput';
 
 export default function Post() {
@@ -106,7 +105,7 @@ export default function Post() {
 
                 await addDoc(collection(db, 'photos'), photoData);
 
-                // 追加: ユーザのハッシュタグ設定を保存（ON状態）
+                // save hashtags in Firestore
                 const userId = auth.currentUser.uid;
                 await Promise.all(tags.map(async (tag) => {
                     const docId = `${userId}_${tag.toLowerCase()}_${selectedGroup.id}`;
@@ -162,7 +161,7 @@ export default function Post() {
                         alt="preview"
                         className="w-20 h-20 object-cover rounded shadow absolute"
                         style={{
-                            left: index * 10, // 少しずつ右にズラす
+                            left: index * 10,
                             zIndex: files.length - index,
                         }}
                     />
