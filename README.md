@@ -24,7 +24,7 @@ This ensures that:
 - Firestore のすべてのデータは 未認証ユーザーから保護
 - Cloudinaryの写真URLはログイン後にのみ発行され、1時間で無効
 
-## Updates
+## 🎶 Updates
 ### 10 June 2025
 - enabled private uploading
 
