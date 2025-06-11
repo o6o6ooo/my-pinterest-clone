@@ -156,7 +156,7 @@ export default function EditGroup() {
                         onChange={(e) => {
                             const cleanedId = cleanInput(e.target.value, { toLowerCase: true });
                             setGroupId(cleanedId);
-                            setGroupLink(`https://your-app.com/group/join/${cleanedId}`);
+                            setGroupLink(`https://kuusi-f06ab.web.app/group/join/${cleanedId}`);
                         }}
                         className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
                     />
