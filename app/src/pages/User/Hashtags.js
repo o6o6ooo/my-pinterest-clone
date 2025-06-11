@@ -15,7 +15,6 @@ export default function Hashtags() {
         const fetchHashtags = async () => {
             if (!auth.currentUser) return;
             try {
-                // 所属グループ取得
                 const groupSnapshot = await getDocs(query(
                     collection(db, 'groups'),
                     where('members', 'array-contains', auth.currentUser.uid)
@@ -27,7 +26,6 @@ export default function Hashtags() {
                     return;
                 }
 
-                // 各グループの user_hashtag_settings を取得
                 const promises = groupIds.map(groupId =>
                     getDocs(query(
                         collection(db, 'user_hashtag_settings'),
@@ -43,7 +41,6 @@ export default function Hashtags() {
                     });
                 });
 
-                // 自分の設定のみ取得
                 const settingSnapshot = await getDocs(query(
                     collection(db, 'user_hashtag_settings'),
                     where('user_id', '==', auth.currentUser.uid)
@@ -54,11 +51,9 @@ export default function Hashtags() {
                     settingsMap[data.hashtag] = data.show_in_feed;
                 });
 
-                // 各ハッシュタグについて、自分の設定があればそれを使う。なければ必ずオフにする
                 const uniqueHashtagsMap = {};
                 allSettings.forEach(setting => {
                     const tag = setting.hashtag;
-                    // まだマップにない場合 or 自分の設定が見つかったら更新
                     if (!uniqueHashtagsMap[tag] || setting.user_id === auth.currentUser.uid) {
                         uniqueHashtagsMap[tag] = {
                             ...setting,
@@ -116,7 +111,7 @@ export default function Hashtags() {
                             });
                         }
                     } else {
-                        // 既存レコードがある場合はすべて更新
+                        // 既存レコードがある場合はすべて更新(fix needed)
                         await Promise.all(snapshot.docs.map(docSnapshot => {
                             const userSettingRef = doc(db, 'user_hashtag_settings', docSnapshot.id);
                             return setDoc(userSettingRef, {

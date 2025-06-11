@@ -46,7 +46,7 @@ export default function UserSettings() {
             <div className="mt-10 relative w-24 h-24 rounded-full border-2 border-white shadow-md" style={{ backgroundColor: bgColour }}>
                 <span className="text-5xl flex items-center justify-center h-full">{icon}</span>
 
-                {/* ペンアイコンの小さい丸バッジ */}
+                {/* pen icon */}
                 <button onClick={() => navigate('/user/edit-profile-icon')} className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-200">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +67,7 @@ export default function UserSettings() {
                 <div onClick={() => navigate('/user/change-email')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Email</span>
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">{userEmail}</span> {/* 右に寄せて表示 */}
+                        <span className="text-sm text-gray-600">{userEmail}</span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6">
                             <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                         </svg>

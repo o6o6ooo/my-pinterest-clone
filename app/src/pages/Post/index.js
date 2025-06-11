@@ -105,7 +105,7 @@ export default function Post() {
 
                 await addDoc(collection(db, 'photos'), photoData);
 
-                // 追加: ユーザのハッシュタグ設定を保存（ON状態）
+                // save hashtags in Firestore
                 const userId = auth.currentUser.uid;
                 await Promise.all(tags.map(async (tag) => {
                     const docId = `${userId}_${tag.toLowerCase()}_${selectedGroup.id}`;
@@ -161,7 +161,7 @@ export default function Post() {
                         alt="preview"
                         className="w-20 h-20 object-cover rounded shadow absolute"
                         style={{
-                            left: index * 10, // 少しずつ右にズラす
+                            left: index * 10,
                             zIndex: files.length - index,
                         }}
                     />
