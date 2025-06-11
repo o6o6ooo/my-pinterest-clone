@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, where, doc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, query, where, doc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 import Masonry from 'react-masonry-css';
 import cleanInput from '../../utils/cleanInput';
@@ -45,6 +45,22 @@ export default function HomeFeed() {
             const snapshot = await getDocs(q);
             const photoData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
+            // 投稿者のuserId一覧を取得（重複排除）
+            const userIds = [...new Set(photoData.map(photo => photo.posted_by))];
+
+            // 各ユーザーの情報を取得
+            const userDocs = await Promise.all(
+                userIds.map(async (uid) => {
+                    const userDoc = await getDoc(doc(db, 'users', uid));
+                    return { uid, ...userDoc.data() };
+                })
+            );
+
+            const userMap = {};
+            userDocs.forEach(user => {
+                userMap[user.uid] = user;
+            });
+
             // Cloudinary署名付きURLを取得
             const idToken = await auth.currentUser.getIdToken();
             const publicIds = photoData.map(photo => photo.photo_url);
@@ -65,13 +81,15 @@ export default function HomeFeed() {
 
             const signedUrls = await response.json();
 
-            const photoDataWithUrls = photoData.map(photo => ({
+            // 写真にsignedUrl + 投稿者情報を追加
+            const photoDataWithExtras = photoData.map(photo => ({
                 ...photo,
                 signedUrl: signedUrls[photo.photo_url],
+                posted_by_user: userMap[photo.posted_by] || null,
             }));
 
-            console.log('photourl:',signedUrls)
-            setPhotos(photoDataWithUrls);
+            console.log('Photos with user info:', photoDataWithExtras);
+            setPhotos(photoDataWithExtras);
         };
 
         const fetchUserHashtags = async () => {
@@ -285,6 +303,8 @@ export default function HomeFeed() {
         }
     };
 
+    console.log('selectedPhoto:', selectedPhoto);
+
     return (
         <div className="flex flex-col min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 pb-20">
             {/* タブバー */}
@@ -323,27 +343,50 @@ export default function HomeFeed() {
                     className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-auto bg-black bg-opacity-70"
                     onClick={() => {
                         closePreview();
-                      }}
+                    }}
                 >
-                    <div className="max-w-[90vw] max-h-[90vh] relative" onClick={(e) => {
-                        e.stopPropagation();
-                    }}>
+                    <div
+                        className="max-w-[90vw] max-h-[90vh] relative"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                        }}
+                    >
+                        {/* photo */}
                         <img
                             src={selectedPhoto.signedUrl}
                             alt=""
                             className="max-w-full max-h-full rounded-xl"
                         />
-                        {/* buttons on photo preview */}
+
+                        {/* year and hashtags */}
                         <div className="absolute bottom-0 left-0 right-0 text-white p-2 flex flex-wrap gap-2 items-center justify-between rounded-b-xl">
-                            <span className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium">{selectedPhoto.year}</span>
+                            <span className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium">
+                                {selectedPhoto.year}
+                            </span>
                             <div className="flex gap-1 flex-wrap">
                                 {selectedPhoto.hashtags?.map((tag, idx) => (
-                                    <span key={idx} className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium">
+                                    <span
+                                        key={idx}
+                                        className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium"
+                                    >
                                         {tag}
                                     </span>
                                 ))}
                             </div>
-                            <div className="absolute bottom-40 -left-3 flex flex-col gap-3 z-10">
+                        </div>
+
+                        {/* user icon and buttons */}
+                        {selectedPhoto.posted_by_user && (
+                            <div className="absolute left-0 -bottom-12 flex items-center gap-2 z-10">
+                                <div
+                                    className="rounded-full text-2xl w-10 h-10 flex items-center justify-center border-2 border-white shadow-md"
+                                    style={{
+                                        backgroundColor:
+                                            selectedPhoto.posted_by_user.bgColour,
+                                    }}
+                                >
+                                    {selectedPhoto.posted_by_user.icon}
+                                </div>
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -351,7 +394,11 @@ export default function HomeFeed() {
                                     }}
                                     className="bg-white rounded-full w-10 h-10 flex items-center justify-center shadow text-xl"
                                 >
-                                    {selectedPhoto.favourites?.includes(auth.currentUser.uid) ? '❤️' : '🤍'}
+                                    {selectedPhoto.favourites?.includes(
+                                        auth.currentUser.uid
+                                    )
+                                        ? '❤️'
+                                        : '🤍'}
                                 </button>
                                 <button
                                     onClick={(e) => {
@@ -365,7 +412,11 @@ export default function HomeFeed() {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        if (window.confirm('Are you sure you want to delete this photo?')) {
+                                        if (
+                                            window.confirm(
+                                                'Are you sure you want to delete this photo?'
+                                            )
+                                        ) {
                                             deletePhoto(selectedPhoto.id);
                                             closePreview();
                                         }
@@ -375,7 +426,7 @@ export default function HomeFeed() {
                                     🗑️
                                 </button>
                             </div>
-                        </div>
+                        )}
 
                         {/* close */}
                         <button
