@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import { collection, getDocs, query, where, doc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
-import { useNavigate } from 'react-router-dom';
 import Masonry from 'react-masonry-css';
 import cleanInput from '../../utils/cleanInput';
 
 export default function HomeFeed() {
-    const navigate = useNavigate();
 
     const [photos, setPhotos] = useState([]);
     const [selectedTab, setSelectedTab] = useState('all');
@@ -332,7 +330,7 @@ export default function HomeFeed() {
                         e.stopPropagation();
                     }}>
                         <img
-                            src={selectedPhoto.photo_url}
+                            src={selectedPhoto.signedUrl}
                             alt=""
                             className="max-w-full max-h-full rounded-xl"
                         />
