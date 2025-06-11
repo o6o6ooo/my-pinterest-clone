@@ -29,18 +29,18 @@ export default function UploadOverlay({ isOpen, onClose }) {
 
     return (
         <div
-            className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-center items-end"
+            className="fixed inset-0 bg-transparent z-50 flex justify-center items-center"
             onClick={handleOverlayClick}
         >
             <div
-                className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-lg flex flex-col items-center p-6"
-                style={{ height: '25%', paddingTop: '50px' }} 
+                className="fixed bg-white rounded-xl shadow-lg flex flex-col items-center p-6 border border-[#0A4A6E]"
+                style={{ height: '20%', paddingTop: '50px' }} 
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* close button*/}
                 <button
                     onClick={handleClose}
-                    className="absolute top-4 left-4 p-2 text-[#0A4A6E] hover:bg-gray-100 rounded-full"
+                    className="absolute top-2 left-2 text-[#0A4A6E] hover:bg-gray-100 rounded-full"
                     aria-label="Close"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -65,7 +65,7 @@ export default function UploadOverlay({ isOpen, onClose }) {
                                 clipRule="evenodd"
                             />
                         </svg>
-                        <p className="mt-2 font-medium">Choose photos</p>
+                        <p className="mt-2 text-sm font-semibold">upload photos?</p>
                     </button>
 
                     <input
