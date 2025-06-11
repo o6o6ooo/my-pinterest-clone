@@ -65,7 +65,6 @@ export default function HomeFeed() {
 
             const signedUrls = await response.json();
 
-            // 各写真に署名付きURLを追加
             const photoDataWithUrls = photoData.map(photo => ({
                 ...photo,
                 signedUrl: signedUrls[photo.photo_url],
@@ -301,7 +300,7 @@ export default function HomeFeed() {
                 ))}
             </div>
 
-            {/* Masonry グリッド */}
+            {/* Masonry grid layout */}
             <Masonry
                 breakpointCols={breakpointColumnsObj}
                 className="my-masonry-grid"
@@ -318,7 +317,7 @@ export default function HomeFeed() {
                 ))}
             </Masonry>
 
-            {/* プレビュー */}
+            {/* preview */}
             {showPreview && selectedPhoto && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-auto bg-black bg-opacity-70"
@@ -334,7 +333,7 @@ export default function HomeFeed() {
                             alt=""
                             className="max-w-full max-h-full rounded-xl"
                         />
-                        {/* 年・ハッシュタグ・ハート */}
+                        {/* buttons on photo preview */}
                         <div className="absolute bottom-0 left-0 right-0 text-white p-2 flex flex-wrap gap-2 items-center justify-between rounded-b-xl">
                             <span className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium">{selectedPhoto.year}</span>
                             <div className="flex gap-1 flex-wrap">
@@ -378,7 +377,7 @@ export default function HomeFeed() {
                             </div>
                         </div>
 
-                        {/* 閉じるボタン */}
+                        {/* close */}
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -460,7 +459,7 @@ export default function HomeFeed() {
                             </div>
                         </div>
 
-                        {/* 保存ボタン */}
+                        {/* save */}
                         <button
                             onClick={handleSaveEdit}
                             className={`py-2 px-4 mt-4 rounded-lg font-medium text-white ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#0A4A6E]'}`}
