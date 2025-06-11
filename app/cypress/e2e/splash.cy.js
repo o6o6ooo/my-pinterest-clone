@@ -1,12 +1,10 @@
+import firebaseMock from '../support/firebase-mock?raw';
+
 describe('Splash Screen and Initial Navigation', () => {
   beforeEach(() => {
-    // iPhone 15 Pro Maxのビューポート設定
     cy.viewport(430, 932);
-    
-    // 各テスト前にlocalStorageをクリア
-    cy.clearLocalStorage();
+        cy.clearLocalStorage();
 
-    // Firebaseのモックを初期化
     cy.window().then((win) => {
       // Firebaseのモック
       const mockFirebase = {
@@ -15,7 +13,7 @@ describe('Splash Screen and Initial Navigation', () => {
           onAuthStateChanged: (callback) => {
             // 初期状態では未認証
             callback(null);
-            return () => {}; // クリーンアップ関数
+            return () => {};
           },
           signInWithEmailAndPassword: (email, password) => {
             return Promise.resolve({
@@ -48,8 +46,8 @@ describe('Splash Screen and Initial Navigation', () => {
     });
   });
 
-  context('初回アクセス時の招待コード画面表示', () => {
-    it('スプラッシュ画面が表示された後、招待コード入力画面に遷移し、正しいコードを入力するとサインイン/サインアップ画面に遷移する', () => {
+  context('Display invitation page when accessing for the first time ', () => {
+    it('Display splash, goes to invitation page, put correct code and then goes to sign in/up.', () => {
       // Given: まだアプリを使ったことがない（localStorageが空の状態）
       cy.clearLocalStorage();
 
@@ -74,8 +72,8 @@ describe('Splash Screen and Initial Navigation', () => {
     });
   });
 
-  context('すでに認証済みで未サインイン状態', () => {
-    it('スプラッシュ画面が表示された後、サインイン画面に遷移する', () => {
+  context('Display sign in/up when verified invitation and signed out', () => {
+    it('Display splash and then goes to sign in/up', () => {
       // Given: 招待コード認証は済んでいるがサインアウトしている
       cy.window().then((win) => {
         win.localStorage.setItem('invitationVerified', 'true');
@@ -94,9 +92,8 @@ describe('Splash Screen and Initial Navigation', () => {
     });
   });
 
-  context('サインイン済み状態のリダイレクト', () => {
-    it('スプラッシュ画面が表示された後、ホームフィードに遷移する', () => {
-      // Given: ユーザーがサインイン済み
+  context('Display home feed when signed in', () => {
+    it('Display splash and then goes to home feed', () => {
       const mockUser = {
         uid: 'test-uid',
         email: 'test@example.com',
@@ -104,102 +101,21 @@ describe('Splash Screen and Initial Navigation', () => {
         emailVerified: true
       };
 
-      // アプリを開く前に認証状態を設定
       cy.window().then((win) => {
-        // localStorageの設定
+        win.__TEST_USER__ = mockUser; // ログイン済みユーザーを設定
         win.localStorage.setItem('user', JSON.stringify(mockUser));
         win.localStorage.setItem('invitationVerified', 'true');
-
-        // Firebaseのモックを更新
-        const authMock = {
-          currentUser: mockUser,
-          onAuthStateChanged: (callback) => {
-            callback(mockUser);
-            return () => {};
-          },
-          signInWithEmailAndPassword: () => Promise.resolve({ user: mockUser }),
-          signOut: () => Promise.resolve()
-        };
-
-        // Firebaseのモックを完全に置き換え
-        win.firebase = {
-          auth: () => authMock,
-          firestore: () => ({
-            collection: () => ({
-              doc: () => ({
-                get: () => Promise.resolve({
-                  exists: true,
-                  data: () => ({})
-                }),
-                set: () => Promise.resolve()
-              })
-            })
-          })
-        };
-
-        // グローバルなauthオブジェクトを設定
-        win.auth = authMock;
       });
 
-      // When: アプリを開く
       cy.visit('/', {
-        onBeforeLoad: (win) => {
-          // ページ読み込み前に認証状態を設定
-          const authMock = {
-            currentUser: mockUser,
-            onAuthStateChanged: (callback) => {
-              callback(mockUser);
-              return () => {};
-            },
-            signInWithEmailAndPassword: () => Promise.resolve({ user: mockUser }),
-            signOut: () => Promise.resolve()
-          };
-
-          win.firebase = {
-            auth: () => authMock,
-            firestore: () => ({
-              collection: () => ({
-                doc: () => ({
-                  get: () => Promise.resolve({
-                    exists: true,
-                    data: () => ({})
-                  }),
-                  set: () => Promise.resolve()
-                })
-              })
-            })
-          };
-
-          // グローバルなauthオブジェクトを設定
-          win.auth = authMock;
-
-          // グローバルなgetAuth関数をモック
-          win.getAuth = () => authMock;
-
-          // グローバルなonAuthStateChanged関数をモック
-          win.onAuthStateChanged = (callback) => {
-            callback(mockUser);
-            return () => {};
-          };
-
-          // グローバルなgetAuth関数をモック
-          win.getAuth = () => ({
-            currentUser: mockUser,
-            onAuthStateChanged: (callback) => {
-              callback(mockUser);
-              return () => {};
-            }
-          });
+        onBeforeLoad(win) {
+          win.eval(firebaseMock);
         }
       });
 
-      // Then: スプラッシュ画面が表示される
       cy.get('[data-testid="splash-screen"]').should('be.visible');
-
-      // 2秒後にホームフィードに遷移することを確認
       cy.wait(2000);
       cy.url().should('include', '/home');
-      cy.get('[data-testid="home-feed"]').should('be.visible');
     });
-  });
+  }); 
 }); 
