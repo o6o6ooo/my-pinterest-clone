@@ -17,7 +17,7 @@ This ensures that:
 - All Firestore data is protected from unauthorized access
 - Cloudinary image URLs are only generated after login and expire after 1 hour
 
-🇯🇵 本アプリでは、GoogleまたはAppleアカウントを使ったFirebase Authenticationによるユーザー認証を導入しています。
+🇯🇵 このアプリでは、Firebase Authenticationによるユーザー認証を導入しています。
 サーバーAPIではすべてのリクエストに対して Firebase IDトークンの検証を行い、Firestoreのアクセスも 認証済みユーザーのみに制限しています：
 - 写真は一般公開されません
 - 写真のアップロード・閲覧は ログイン中のユーザーのみ可能
@@ -32,4 +32,5 @@ This ensures that:
 - fixed photo preview
 - enabled automatic sign out 3 mins after closing app
 - improved upload overlay
-- added a overlay showing group members
+- added an overlay showing group members
+- added an overlay for privacy and security

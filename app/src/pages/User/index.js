@@ -10,6 +10,7 @@ export default function UserSettings() {
     const [displayName, setDisplayName] = useState('');
     const [icon, setIcon] = useState('');
     const [bgColour, setbgColour] = useState('');
+    const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
 
     useEffect(() => {
         const currentUser = auth.currentUser;
@@ -113,6 +114,25 @@ export default function UserSettings() {
                         <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
                     </svg>
                 </div>
+
+                {/* privacy policy */}
+                <div className="flex justify-between items-center py-4 cursor-pointer text-sm" onClick={() => setIsPrivacyPolicyOpen(true)}>
+                    <span>Privacy Policy</span>
+                </div>
+                {isPrivacyPolicyOpen && (
+                    <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center" onClick={() => setIsPrivacyPolicyOpen(false)}>
+                        <div className="bg-white rounded-xl shadow-lg p-4 w-70 max-h-[80vh] overflow-y-auto relative items-center border border-[#0A4A6E] mx-8" onClick={() => setIsPrivacyPolicyOpen(false)}>
+                            <div className="flex flex-col gap-2 text-sm">
+                                <h2 className="font-bold">Privacy & Security</h2>
+                                <span>- Uploaded images cannot be accessed publicly</span>
+                                <span>- Only signed-in users can upload or view photos
+                                </span>
+                                <span>- All photos data is protected from unauthorized access</span>
+                                <span>- Image URLs are only generated after login and expire after 1 hour</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
