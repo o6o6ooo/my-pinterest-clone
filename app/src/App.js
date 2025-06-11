@@ -34,19 +34,21 @@ function App() {
       localStorage.setItem('lastActiveAt', Date.now().toString());
     };
 
-    window.addEventListener('beforeunload', saveLastActiveTime);
-    document.addEventListener('visibilitychange', () => {
+    const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         saveLastActiveTime();
       }
-    });
+    };
+
+    window.addEventListener('beforeunload', saveLastActiveTime);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('beforeunload', saveLastActiveTime);
-      document.removeEventListener('visibilitychange', saveLastActiveTime);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
-
+  
   return (
     <div className="relative min-h-screen">
       <Routes>
