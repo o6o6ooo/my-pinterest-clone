@@ -349,6 +349,7 @@ export default function HomeFeed() {
                         className="max-w-[90vw] max-h-[90vh] relative"
                         onClick={(e) => {
                             e.stopPropagation();
+                            closePreview();
                         }}
                     >
                         {/* photo */}
