@@ -340,7 +340,8 @@ export default function HomeFeed() {
             {/* preview */}
             {showPreview && selectedPhoto && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-auto bg-black bg-opacity-70"
+                    className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black bg-opacity-70"
+                    style={{ bottom: '100px' }}
                     onClick={() => {
                         closePreview();
                     }}
@@ -356,7 +357,7 @@ export default function HomeFeed() {
                         <img
                             src={selectedPhoto.signedUrl}
                             alt=""
-                            className="max-w-full max-h-full rounded-xl"
+                            className="max-w-full max-h-[70vh] rounded-xl"
                         />
 
                         {/* year and hashtags */}
