@@ -92,12 +92,14 @@ export default function Post() {
             if (!response.ok) throw new Error('Upload failed.');
             const data = await response.json();
             console.log('Upload response data:', data);
+            const userId = auth.currentUser.uid;
 
             if (data.public_id) {
                 // save photo in Firestore
                 const photoData = {
                     photo_url: data.public_id,
                     group_id: selectedGroup.id,
+                    posted_by: userId,
                     year: year || null,
                     hashtags: tags.map(tag => tag.toLowerCase()),
                     created_at: serverTimestamp(),
@@ -106,7 +108,6 @@ export default function Post() {
                 await addDoc(collection(db, 'photos'), photoData);
 
                 // save hashtags in Firestore
-                const userId = auth.currentUser.uid;
                 await Promise.all(tags.map(async (tag) => {
                     const docId = `${userId}_${tag.toLowerCase()}_${selectedGroup.id}`;
                     const settingRef = doc(db, 'user_hashtag_settings', docId);
