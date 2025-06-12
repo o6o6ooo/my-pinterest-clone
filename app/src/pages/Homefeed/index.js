@@ -67,7 +67,7 @@ export default function HomeFeed() {
 
             const response = await fetch(
                 process.env.NODE_ENV === 'development'
-                    ? 'http://localhost:5001/api/cloudinary-signed-urls'
+                    ? 'http://192.168.4.48:5001/api/cloudinary-signed-urls'
                     : 'https://kuusi.onrender.com/api/cloudinary-signed-urls',
                 {
                     method: 'POST',
