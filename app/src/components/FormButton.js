@@ -7,6 +7,7 @@ export default function FormButton({
     type = 'submit',
     onClick,
     disabled = false,
+    fullWidth = true,
 }) {
     const isDisabled = loading || disabled;
 
@@ -15,10 +16,9 @@ export default function FormButton({
             type={type}
             onClick={onClick}
             disabled={isDisabled}
-            className={`flex items-center justify-center w-full py-3 rounded-lg font-medium transition-colors shadow-md ${isDisabled
-                    ? 'bg-[#0A4A6E] opacity-50 cursor-not-allowed'
-                    : 'bg-[#0A4A6E] hover:bg-[#08324E] text-white'
-                }`}
+            className={`px-4 rounded-lg font-medium transition-colors flex items-center justify-center
+                ${fullWidth ? 'w-full py-3' : 'w-auto py-2 px-3'}
+                ${loading ? 'bg-[#0A4A6E]/50 cursor-not-allowed' : 'bg-[#0A4A6E] hover:bg-[#08324E] text-white'}`}
         >
             {loading ? (
                 <>
