@@ -5,6 +5,7 @@ import Masonry from 'react-masonry-css';
 import cleanInput from '../../utils/cleanInput';
 import FormInput from '../../components/FormInput';
 import FormButton from '../../components/FormButton';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 
 export default function HomeFeed() {
 
@@ -489,16 +490,7 @@ export default function HomeFeed() {
                                         }}
                                     >
                                         {tag}
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            strokeWidth={2}
-                                            stroke="currentColor"
-                                            className="w-3 h-3 ml-1"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                        </svg>
+                                        <XMarkIcon className="w-3 h-3 ml-1 text-white" />
                                     </span>
                                 ))}
                             </div>
