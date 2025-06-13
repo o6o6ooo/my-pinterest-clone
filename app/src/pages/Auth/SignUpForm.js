@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
-import EyeIcon from '../../components/EyeIcon';
-import EyeSlashIcon from '../../components/EyeSlashIcon';
 import { db } from '../../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import cleanInput from '../../utils/cleanInput';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
 
 export default function SignUpForm() {
     const [email, setEmail] = useState('');
@@ -63,80 +63,51 @@ export default function SignUpForm() {
             {error && <p className="text-red-600 text-sm font-medium">{error}</p>}
 
             {/* name */}
-            <div className="relative w-full">
-                <label htmlFor="name" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                    Name
-                </label>
-                <input
-                    type="text"
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                    required
-                    disabled={loading}
-                />
-            </div>
+            <FormInput
+                label="Name"
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(cleanInput(e.target.value))}
+                required
+                disabled={loading}
+            />
 
             {/* Email */}
-            <div className="relative w-full">
-                <label htmlFor="email" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                    Email
-                </label>
-                <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(cleanInput(e.target.value, { toLowerCase: false }))}
-                    autoComplete="email"
-                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                    required
-                    disabled={loading}
-                />
-            </div>
+            <FormInput
+                label="Email"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(cleanInput(e.target.value, { toLowerCase: false }))}
+                autoComplete="email"
+                required
+                disabled={loading}
+            />
 
             {/* Password */}
-            <div className="relative w-full">
-                <label htmlFor="password" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                    Password
-                </label>
-                <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="new-password"
-                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                    required
-                    disabled={loading}
-                />
-            </div>
+            <FormInput
+                label="Password"
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                disabled={loading}
+            />
 
             {/* Confirm Password */}
-            <div className="relative w-full">
-                <label htmlFor="confirmPassword" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                    Confirm Password
-                </label>
-                <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    autoComplete="new-password"
-                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pr-10 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                    required
-                    disabled={loading}
-                />
-                <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 text-[#0A4A6E] hover:text-[#08324E]"
-                    aria-label={showPassword ? 'Hide passwords' : 'Show passwords'}
-                    disabled={loading}
-                >
-                    {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                </button>
-            </div>
+            <FormInput
+                label="Confirm Password"
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                disabled={loading}
+            />
 
             {/* Submit */}
             <button
