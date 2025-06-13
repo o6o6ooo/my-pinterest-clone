@@ -3,7 +3,7 @@ import {
     HomeIcon as HomeIconOutline,
     BellIcon as BellIconOutline,
     UserIcon as UserIconOutline,
-    PlusCircleIcon,
+    CameraIcon,
 } from '@heroicons/react/24/outline';
 
 import {
@@ -43,7 +43,7 @@ export default function BottomNavBar({ onUploadClick }) {
                 onClick={onUploadClick}
                 className="flex flex-col items-center text-xs text-[#0A4A6E]"
             >
-                <PlusCircleIcon className="w-8 h-8" />
+                <CameraIcon className="w-8 h-8" />
             </button>
 
             {/* user */}
