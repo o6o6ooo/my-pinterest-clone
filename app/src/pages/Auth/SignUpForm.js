@@ -12,7 +12,6 @@ export default function SignUpForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -100,31 +99,19 @@ export default function SignUpForm() {
             {/* Confirm Password */}
             <FormInput
                 label="Confirm Password"
-                id="password"
+                id="confirmPassword"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 autoComplete="current-password"
                 required
                 disabled={loading}
             />
 
             {/* Submit */}
-            <button
-                type="submit"
-                disabled={loading}
-                className={`flex items-center justify-center w-full py-3 rounded-lg font-medium transition-colors ${loading ? 'bg-[#0A4A6E] opacity-50 cursor-not-allowed' : 'bg-[#0A4A6E] hover:bg-[#08324E] text-white'
-                    }`}
-            >
-                {loading ? (
-                    <>
-                        Signing up...
-                        <div className="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full slow-spin ml-2"></div>
-                    </>
-                ) : (
-                    'Sign Up'
-                )}
-            </button>
+            <FormButton loading={loading} loadingText="Signing up...">
+                Sign Up
+            </FormButton> 
         </form>
     );
 }
