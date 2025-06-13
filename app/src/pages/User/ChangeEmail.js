@@ -4,12 +4,14 @@ import { auth, db } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import cleanInput from '../../utils/cleanInput';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
 
 export default function ChangeEmail() {
     const [oldEmail, setOldEmail] = useState('');
     const [newEmail, setNewEmail] = useState('');
     const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const [successMessage, setSuccessMessage] = useState('');
 
@@ -30,7 +32,7 @@ export default function ChangeEmail() {
         }
 
         try {
-            setIsLoading(true);
+            setLoading(true);
 
             // update in authentication
             await updateEmail(auth.currentUser, newEmail);
@@ -47,7 +49,7 @@ export default function ChangeEmail() {
             console.error(err);
             setError('Failed to update email.');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
@@ -65,17 +67,14 @@ export default function ChangeEmail() {
 
             <div className="mt-10 px-6 py-8 w-full max-w-sm flex flex-col gap-6">
                 {/* old email */}
-                <div className="flex flex-col relative bg-[#dfdfdf] rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">Old Email</label>
-                    <div className="flex items-center pt-4">
-                        <input
-                            type="text"
-                            value={oldEmail}
-                            readOnly
-                            className="flex-1 bg-transparent outline-none text-gray-600"
-                        />
-                    </div>
-                </div>
+                <FormInput
+                    label="Old Email"
+                    type="text"
+                    value={oldEmail}
+                    readOnly
+                    disabled
+                    variant="readonly"
+                />
 
                 {/* new email */}
                 <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
@@ -87,16 +86,25 @@ export default function ChangeEmail() {
                         className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
                     />
                 </div>
+                <FormInput
+                    label="New Email"
+                    id="email"
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(cleanInput(e.target.value, { toLowerCase: false }))}
+                    required
+                    disabled={loading}
+                />
 
                 {/* change button */}
-                <button
+                <FormButton
+                    type="button"
                     onClick={handleChangeEmail}
-                    disabled={isLoading}
-                    className={`py-2 px-4 mt-3 rounded-lg font-medium text-center transition-colors bg-[#0A4A6E] text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'
-                    }`}
-                    >
-                    {isLoading ? 'Updating...' : 'Update Email'}
-                </button>
+                    loading={loading}
+                    loadingText="Updating..."
+                >
+                    Update Email
+                </FormButton>
 
                 {/* errors */}
                 {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
