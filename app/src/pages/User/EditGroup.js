@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, updateDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db } from '../../firebase';
 import cleanInput from '../../utils/cleanInput';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
 
 export default function EditGroup() {
     const navigate = useNavigate();
@@ -11,7 +13,7 @@ export default function EditGroup() {
     const [groupName, setGroupName] = useState('');
     const [groupId, setGroupId] = useState('');
     const [groupLink, setGroupLink] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState([]);
     const [successMessage, setSuccessMessage] = useState('');
     const [members, setMembers] = useState([]);
@@ -87,7 +89,7 @@ export default function EditGroup() {
             return;
         }
 
-        setIsLoading(true);
+        setLoading(true);
 
         try {
             const updatedData = {
@@ -104,7 +106,7 @@ export default function EditGroup() {
             console.error('Group update error:', error);
             setErrors(['Failed to update group.']);
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
@@ -148,43 +150,40 @@ export default function EditGroup() {
 
             <div className="px-6 py-8 w-full max-w-sm flex flex-col gap-6">
                 {/* Group ID */}
-                <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">Group ID</label>
-                    <input
-                        type="text"
-                        value={groupId}
-                        onChange={(e) => {
-                            const cleanedId = cleanInput(e.target.value, { toLowerCase: true });
-                            setGroupId(cleanedId);
-                            setGroupLink(`https://kuusi-f06ab.web.app/group/join/${cleanedId}`);
-                        }}
-                        className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
-                    />
-                </div>
+                <FormInput
+                    label="Group ID"
+                    id="groupId"
+                    type="text"
+                    value={groupId}
+                    onChange={(e) => {
+                        const cleanedId = cleanInput(e.target.value, { toLowerCase: true });
+                        setGroupId(cleanedId);
+                        setGroupLink(`https://kuusi-f06ab.web.app/group/join/${cleanedId}`);
+                    }}
+                    required
+                    disabled={loading}
+                />
 
                 {/* Group Name */}
-                <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">Group name</label>
-                    <input
-                        type="text"
-                        value={groupName}
-                        onChange={(e) => setGroupName(cleanInput(e.target.value, { toLowerCase: false }))}
-                        className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
-                    />
-                </div>
+                <FormInput
+                    label="Group name"
+                    id="groupName"
+                    type="text"
+                    value={groupName}
+                    onChange={(e) => setGroupName(cleanInput(e.target.value))}
+                    required
+                    disabled={loading}
+                />
 
                 {/* Group Link */}
-                <div className="flex flex-col relative bg-[#dfdfdf] rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">Group link</label>
-                    <div className="flex items-center pt-4">
-                        <input
-                            type="text"
-                            value={groupLink}
-                            readOnly
-                            className="flex-1 bg-transparent outline-none text-gray-600"
-                        />
-                    </div>
-                </div>
+                <FormInput
+                    label="Group link"
+                    type="text"
+                    value={groupLink}
+                    readOnly
+                    disabled
+                    variant="readonly"
+                />
 
                 {/* share */}
                 <button className="ml-2 text-[#0A4A6E] flex items-center" onClick={handleShare}>
@@ -210,13 +209,14 @@ export default function EditGroup() {
                 )}
 
                 {/* Save button */}
-                <button
+                <FormButton
+                    type="button"
                     onClick={handleSaveGroup}
-                    disabled={isLoading}
-                    className={`py-2 px-4 mt-3 rounded-lg font-medium text-center transition-colors text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'}`}
+                    loading={loading}
+                    loadingText="Saving..."
                 >
-                    {isLoading ? 'Saving...' : 'Save'}
-                </button>
+                    Save
+                </FormButton>
 
                 {/* Errors */}
                 {errors.length > 0 && (
