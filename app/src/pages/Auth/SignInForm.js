@@ -8,7 +8,6 @@ import FormButton from '../../components/FormButton';
 export default function SignInForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [resetMode, setResetMode] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
