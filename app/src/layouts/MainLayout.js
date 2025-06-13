@@ -1,10 +1,14 @@
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'; 
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import BottomNavBar from '../components/BottomNavBar';
 import UploadOverlay from '../components/UploadOverlay';
+import { AnimatePresence } from 'framer-motion';
+import PageWrapper from '../components/PageWrapper';
+import { useNavigationDirection } from '../App';
 
 export default function MainLayout() {
     const location = useLocation();
     const navigate = useNavigate();
+    const { isBack } = useNavigationDirection();
 
     const params = new URLSearchParams(location.search);
     const isUploadOpen = params.get('upload') === 'true';
@@ -18,10 +22,14 @@ export default function MainLayout() {
     return (
         <div className="relative text-[#0A4A6E]">
             <main>
-                <Outlet />
+                <AnimatePresence mode="wait">
+                    <PageWrapper key={location.pathname} isBack={isBack}>
+                        <Outlet />
+                    </PageWrapper>
+                </AnimatePresence>
             </main>
             <BottomNavBar />
             {isUploadOpen && <UploadOverlay isOpen={isUploadOpen} onClose={handleCloseUpload} />}
         </div>
     );
-  }
+}

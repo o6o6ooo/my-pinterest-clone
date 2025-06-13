@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Splash from './pages/Splash';
 import InvitationCode from './pages/InvitationCode';
@@ -20,13 +20,22 @@ import JoinGroup from './pages/User/JoinGroup';
 import EditProfileIcon from './pages/User/EditProfileIcon';
 import Hashtags from './pages/User/Hashtags';
 
-function App() {
+// Context for navigation direction
+const NavigationDirectionContext = createContext();
+export function useNavigationDirection() {
+  return useContext(NavigationDirectionContext);
+}
+
+// --- Main App component ---
+function App({ isBack }) {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const location = useLocation();
 
   // BottomNavBarを非表示にするパスのリスト
   const hideNavBarPaths = ['/auth', '/verify-email', '/invite'];
-  const shouldShowNavBar = !hideNavBarPaths.some(path => location.pathname.startsWith(path));
+  const shouldShowNavBar = !hideNavBarPaths.some((path) =>
+    location.pathname.startsWith(path)
+  );
 
   // save last active time
   useEffect(() => {
@@ -48,7 +57,7 @@ function App() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
-  
+
   return (
     <div className="relative min-h-screen">
       <Routes>
@@ -57,7 +66,7 @@ function App() {
         <Route path="/auth" element={<Auth />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/group/join/:groupId" element={<JoinGroup />} />
-        <Route element={<MainLayout />}>
+        <Route element={<MainLayout isBack={isBack} />}>
           <Route path="/home" element={<HomeFeed />} />
           <Route path="/upload" element={<Post />} />
           <Route path="/notifications" element={<Notifications />} />
@@ -72,28 +81,31 @@ function App() {
         </Route>
       </Routes>
 
-      {/* upload overlay */}
+      {/* Upload overlay */}
       <UploadOverlay
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
       />
 
-      {/* nav bar - 特定のページでは非表示 */}
+      {/* BottomNavBar - 特定のページでは非表示 */}
       {shouldShowNavBar && (
-        <BottomNavBar
-          onUploadClick={() => setIsUploadOpen(true)}
-        />
+        <BottomNavBar onUploadClick={() => setIsUploadOpen(true)} />
       )}
     </div>
   );
 }
 
+// --- AppWrapper for context and routing ---
 export default function AppWrapper() {
+  const [isBack, setIsBack] = useState(false);
+
   return (
     <Router>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <NavigationDirectionContext.Provider value={{ isBack, setIsBack }}>
+        <AuthProvider>
+          <App isBack={isBack} />
+        </AuthProvider>
+      </NavigationDirectionContext.Provider>
     </Router>
   );
 }
