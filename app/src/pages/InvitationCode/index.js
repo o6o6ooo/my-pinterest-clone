@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PasteIcon from '../../components/PasteIcon';
+import { ClipboardDocumentIcon } from '@heroicons/react/24/solid';
 
 export default function InvitationCode() {
     const [code, setCode] = useState('');
@@ -62,7 +62,7 @@ export default function InvitationCode() {
                         onClick={handlePaste}
                         className="absolute right-2 p-1 text-[#0A4A6E] hover:text-[#08324E] transition-colors"
                     >
-                        <PasteIcon className="w-5 h-5" />
+                        <ClipboardDocumentIcon className="w-5 h-5" />
                     </button>
                 </div>
 
