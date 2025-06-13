@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'; 
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../firebase';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { PencilIcon } from '@heroicons/react/24/solid';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import ChangeEmailSlideOver from './ChangeEmailSlideOver';
+import { AnimatePresence } from 'framer-motion';
 
 export default function UserSettings() {
     const navigate = useNavigate();
@@ -13,9 +15,11 @@ export default function UserSettings() {
     const [icon, setIcon] = useState('');
     const [bgColour, setbgColour] = useState('');
     const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
+    const [showChangeEmail, setShowChangeEmail] = useState(false);
 
     useEffect(() => {
         const currentUser = auth.currentUser;
+
         if (currentUser) {
             setUserEmail(currentUser.email);
             setDisplayName(currentUser.displayName);
@@ -60,13 +64,21 @@ export default function UserSettings() {
 
             <div className="w-full max-w-sm mt-10 space-y-2">
                 {/* email */}
-                <div onClick={() => navigate('/user/change-email')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => setShowChangeEmail(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Email</span>
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">{userEmail}</span>
                         <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                     </div>
                 </div>
+                <AnimatePresence>
+                    {showChangeEmail && (
+                        <ChangeEmailSlideOver
+                            open={showChangeEmail}
+                            onClose={() => setShowChangeEmail(false)}
+                        />
+                    )}
+                </AnimatePresence>
 
                 {/* password */}
                 <div onClick={() => navigate('/user/change-password')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
