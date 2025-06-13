@@ -72,31 +72,31 @@ export default function UserSettings() {
                 <div onClick={() => navigate('/user/change-password')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Password</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
-                    </div>
+                </div>
 
                 {/* your groups */}
                 <div onClick={() => navigate('/user/edit-group')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Your groups</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
-                    </div>
+                </div>
 
                 {/* create a group */}
                 <div onClick={() => navigate('/user/create-group')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Create a group</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
-                    </div>
+                </div>
 
                 {/* hashtags */}
                 <div onClick={() => navigate('/user/hashtags')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Hashtags</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
-                    </div>
+                </div>
 
                 {/* sign out */}
                 <div className="flex justify-between items-center py-4 cursor-pointer text-lg" onClick={handleSignOut}>
                     <span>Sign out</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
-                    </div>
+                </div>
 
                 {/* privacy policy */}
                 <div className="flex justify-between items-center py-4 cursor-pointer text-sm" onClick={() => setIsPrivacyPolicyOpen(true)}>
