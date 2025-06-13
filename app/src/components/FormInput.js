@@ -11,6 +11,9 @@ export default function FormInput({
     disabled = false,
     autoComplete,
     readOnly = false,
+    inputMode,
+    pattern,
+    onKeyDown,
     variant,
 }) {
     const [showPassword, setShowPassword] = useState(false);
@@ -30,10 +33,13 @@ export default function FormInput({
                 id={id}
                 value={value}
                 onChange={onChange}
+                onKeyDown={onKeyDown}
                 required={required}
                 disabled={disabled || isReadonly}
                 autoComplete={autoComplete}
                 readOnly={readOnly || isReadonly}
+                inputMode={inputMode}
+                pattern={pattern}
                 className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] 
                 ${isReadonly
                     ? 'bg-[#dfdfdf] text-gray-600 border-[#0A4A6E]'
