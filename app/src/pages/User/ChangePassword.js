@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
 
 export default function ChangePassword() {
     const navigate = useNavigate();
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
@@ -23,7 +25,7 @@ export default function ChangePassword() {
             return;
         }
 
-        setIsLoading(true);
+        setLoading(true);
         setError('');
         setSuccessMessage('');
 
@@ -43,7 +45,7 @@ export default function ChangePassword() {
                 setError(error.message || 'Failed to update password.');
             }        
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
@@ -61,47 +63,49 @@ export default function ChangePassword() {
 
             <div className="mt-10 px-6 py-8 w-full max-w-sm flex flex-col gap-6">
                 {/* old password */}
-                <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">Old Password</label>
-                    <input
-                        type="password"
-                        value={oldPassword}
-                        onChange={(e) => setOldPassword(e.target.value)}
-                        className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
-                    />
-                </div>
+                <FormInput
+                    label="Old Password"
+                    id="password"
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                    disabled={loading}
+                />
 
                 {/* new password */}
-                <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">New Password</label>
-                    <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
-                    />
-                </div>
+                <FormInput
+                    label="New Password"
+                    id="password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                />
 
                 {/* new password confirm*/}
-                <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">New Password Confirm</label>
-                    <input
-                        type="password"
-                        value={newPasswordConfirm}
-                        onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                        className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
-                    />
-                </div>
+                <FormInput
+                    label="New Password Confirm"
+                    id="password"
+                    type="password"
+                    value={newPasswordConfirm}
+                    onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                    required
+                    disabled={loading}
+                />
 
                 {/* change button */}
-                <button
+                <FormButton
+                    type="button"
                     onClick={handleChangePassword}
-                    disabled={isLoading}
-                    className={`py-2 px-4 mt-3 rounded-lg font-medium text-center transition-colors text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'}`}
+                    loading={loading}
+                    loadingText="Updating..."
                 >
-                    {isLoading ? 'Updating...' : 'Update Password'}
-                </button>
-
+                    Update Password
+                </FormButton>
+                
                 {/* errors */}
                 {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
 
