@@ -10,9 +10,12 @@ export default function FormInput({
     required = false,
     disabled = false,
     autoComplete,
+    readOnly = false,
+    variant,
 }) {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === 'password';
+    const isReadonly = variant === 'readonly';
 
     return (
         <div className="relative w-full">
@@ -28,9 +31,14 @@ export default function FormInput({
                 value={value}
                 onChange={onChange}
                 required={required}
-                disabled={disabled}
+                disabled={disabled || isReadonly}
                 autoComplete={autoComplete}
-                className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all shadow-md"
+                readOnly={readOnly || isReadonly}
+                className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] 
+                ${isReadonly
+                    ? 'bg-[#dfdfdf] text-gray-600 border-[#0A4A6E]'
+                    : 'bg-white text-[#0A4A6E] border-[#0A4A6E]'} 
+                focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all shadow-md"
             />
             {isPassword && (
                 <button
