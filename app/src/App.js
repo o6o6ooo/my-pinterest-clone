@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, useLocation, Routes, Route } from 'react-router-dom';
 import Splash from './pages/Splash';
 import InvitationCode from './pages/InvitationCode';
 import Auth from './pages/Auth';
@@ -24,11 +24,11 @@ function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const location = useLocation();
 
-  // BottomNavBarを非表示にするパスのリスト
   const hideNavBarPaths = ['/auth', '/verify-email', '/invite'];
-  const shouldShowNavBar = !hideNavBarPaths.some(path => location.pathname.startsWith(path));
+  const shouldShowNavBar = !hideNavBarPaths.some(path =>
+    location.pathname.startsWith(path)
+  );
 
-  // save last active time
   useEffect(() => {
     const saveLastActiveTime = () => {
       localStorage.setItem('lastActiveAt', Date.now().toString());
@@ -48,7 +48,7 @@ function App() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
-  
+
   return (
     <div className="relative min-h-screen">
       <Routes>
@@ -72,23 +72,20 @@ function App() {
         </Route>
       </Routes>
 
-      {/* upload overlay */}
       <UploadOverlay
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
       />
 
-      {/* nav bar - 特定のページでは非表示 */}
       {shouldShowNavBar && (
-        <BottomNavBar
-          onUploadClick={() => setIsUploadOpen(true)}
-        />
+        <BottomNavBar onUploadClick={() => setIsUploadOpen(true)} />
       )}
     </div>
   );
 }
 
 export default function AppWrapper() {
+
   return (
     <Router>
       <AuthProvider>

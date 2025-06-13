@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase';
-import EyeIcon from '../../components/EyeIcon';
-import EyeSlashIcon from '../../components/EyeSlashIcon';
 import cleanInput from '../../utils/cleanInput';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
 
 export default function SignInForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [resetMode, setResetMode] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
@@ -59,63 +58,32 @@ export default function SignInForm() {
                     {error && <p className="text-red-600 text-sm font-medium">{error}</p>}
 
                     {/* Email */}
-                    <div className="relative w-full">
-                        <label htmlFor="email" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(cleanInput(e.target.value, { toLowerCase: false }))}
-                            autoComplete="email"
-                            className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                            required
-                            disabled={loading}
-                        />
-                    </div>
-
-                    {/* Password */}
-                    <div className="relative w-full">
-                        <label htmlFor="password" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                            Password
-                        </label>
-                        <input
-                            type={showPassword ? 'text' : 'password'}
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            autoComplete="current-password"
-                            className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                            required
-                            disabled={loading}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute top-1/2 right-3 -translate-y-1/2 text-[#0A4A6E] hover:text-[#08324E]"
-                            aria-label={showPassword ? 'Hide password' : 'Show password'}
-                            disabled={loading}
-                        >
-                            {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                        </button>
-                    </div>
-
-                    <button
-                        type="submit"
+                    <FormInput
+                        label="Email"
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(cleanInput(e.target.value, { toLowerCase: false }))}
+                        autoComplete="email"
+                        required
                         disabled={loading}
-                        className={`flex items-center justify-center w-full py-3 rounded-lg font-medium transition-colors ${loading ? 'bg-[#0A4A6E] opacity-50 cursor-not-allowed' : 'bg-[#0A4A6E] hover:bg-[#08324E] text-white'
-                            }`}
-                    >
-                        {loading ? (
-                            <>
-                                Signing in...
-                                <div className="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full slow-spin ml-2"></div>
-                            </>
-                        ) : (
-                            'Sign In'
-                        )}
-                    </button>                    
+                    />
+                    
+                    {/* Password */}
+                    <FormInput
+                        label="Password"
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        autoComplete="current-password"
+                        required
+                        disabled={loading}
+                    />
+
+                    <FormButton loading={loading} loadingText="Signing in...">
+                        Sign In
+                    </FormButton>                  
                     <p
                         className="mt-4 text-sm text-[#0A4A6E] underline cursor-pointer select-none"
                         onClick={() => {
@@ -130,24 +98,20 @@ export default function SignInForm() {
             ) : (
                 <div className="flex flex-col space-y-4">
                     <p className="text-[#0A4A6E] font-semibold">Reset Password</p>
-                    <input
+                    <FormInput
+                        label="Email"
+                        id="email"
                         type="email"
-                        placeholder="Enter your email"
-                        value={resetEmail}
-                            onChange={(e) => setResetEmail(cleanInput(e.target.value, { toLowerCase: false }))}
-                        className="w-full border border-[#0A4A6E] rounded-lg p-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
+                        value={email}
+                        onChange={(e) => setEmail(cleanInput(e.target.value, { toLowerCase: false }))}
+                        autoComplete="email"
                         required
                         disabled={loading}
                     />
-                    <button
-                        type="button"
-                        onClick={handleResetPassword}
-                        disabled={loading}
-                        className={`w-full py-3 rounded-lg font-medium transition-colors ${loading ? 'bg-[#0A4A6E] opacity-50 cursor-not-allowed' : 'bg-[#0A4A6E] hover:bg-[#08324E] text-white'
-                            }`}
-                    >
-                        {loading ? 'Sending...' : 'Send Reset Email'}
-                    </button>
+                    
+                        <FormButton type="button" onClick={handleResetPassword} loading={loading} loadingText="Sending...">
+                        Send Reset Email
+                    </FormButton>
                     {resetMessage && (
                         <p className={`text-sm font-medium ${resetIsError ? 'text-red-600' : 'text-[#0A4A6E]'}`}>
                             {resetMessage}

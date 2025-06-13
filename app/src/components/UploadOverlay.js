@@ -1,5 +1,5 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 
 export default function UploadOverlay({ isOpen, onClose }) {
     const navigate = useNavigate();
@@ -39,12 +39,10 @@ export default function UploadOverlay({ isOpen, onClose }) {
                 {/* close button*/}
                 <button
                     onClick={handleClose}
-                    className="absolute top-2 left-2 text-[#0A4A6E] hover:bg-gray-100 rounded-full"
+                    className="absolute top-2 left-2"
                     aria-label="Close"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
+                    <XMarkIcon className="w-4 h-4 text-#0A4A6E]" />
                 </button>
 
                 <div className="flex flex-col items-center justify-center">

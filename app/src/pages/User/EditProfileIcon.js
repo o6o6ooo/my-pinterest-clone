@@ -4,6 +4,8 @@ import { updateDoc, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
+import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
+import { PencilIcon } from '@heroicons/react/24/solid';
 
 export default function EditIcon() {
     const navigate = useNavigate();
@@ -51,12 +53,9 @@ export default function EditIcon() {
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5 relative">
 
             {/* back */}
-            <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
-                    <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
-                </svg>
+            <button onClick={() => navigate(-1)} className="absolute top-6 left-6">
+                <ArrowLeftCircleIcon className="w-8 h-8 text-current" />
             </button>
-
             <h1 className="text-2xl font-semibold">Edit Icon</h1>
 
             {/* current icon */}
@@ -72,9 +71,7 @@ export default function EditIcon() {
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-200"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-4 h-4 text-[#0A4A6E]">
-                        <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z" />
-                    </svg>
+                    <PencilIcon className="w-4 h-4 text-current" />
                 </button>
             </div>
 
