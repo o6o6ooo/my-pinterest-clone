@@ -40,6 +40,7 @@ export default function FormInput({
                 readOnly={readOnly || isReadonly}
                 inputMode={inputMode}
                 pattern={pattern}
+                // eslint-disable-next-line
                 className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] 
                 ${isReadonly
                     ? 'bg-[#dfdfdf] text-gray-600 border-[#0A4A6E]'
