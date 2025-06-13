@@ -4,6 +4,7 @@ import { auth } from '../../firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import FormInput from '../../components/FormInput';
 import FormButton from '../../components/FormButton';
+import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
 
 export default function ChangePassword() {
     const navigate = useNavigate();
@@ -53,14 +54,10 @@ export default function ChangePassword() {
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
 
             {/* back */}
-            <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
-                    <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
-                </svg>
+            <button onClick={() => navigate(-1)} className="absolute top-6 left-6">
+                <ArrowLeftCircleIcon className="w-8 h-8 text-current" />
             </button>
-
             <h1 className="text-2xl font-semibold">Change Password</h1>
-
             <div className="mt-10 px-6 py-8 w-full max-w-sm flex flex-col gap-6">
                 {/* old password */}
                 <FormInput

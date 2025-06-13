@@ -5,6 +5,8 @@ import { auth, db } from '../../firebase';
 import cleanInput from '../../utils/cleanInput';
 import FormInput from '../../components/FormInput';
 import FormButton from '../../components/FormButton';
+import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
+import { ShareIcon } from '@heroicons/react/24/solid';
 
 export default function EditGroup() {
     const navigate = useNavigate();
@@ -127,12 +129,9 @@ export default function EditGroup() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
             {/* back */}
-            <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
-                    <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
-                </svg>
+            <button onClick={() => navigate(-1)} className="absolute top-6 left-6">
+                <ArrowLeftCircleIcon className="w-8 h-8 text-current" />
             </button>
-
             <h1 className="text-2xl font-semibold">Your groups</h1>
 
             {/* group swtich button */}
@@ -187,9 +186,7 @@ export default function EditGroup() {
 
                 {/* share */}
                 <button className="ml-2 text-[#0A4A6E] flex items-center" onClick={handleShare}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
-                        <path fillRule="evenodd" d="M15.75 4.5a3 3 0 1 1 .825 2.066l-8.421 4.679a3.002 3.002 0 0 1 0 1.51l8.421 4.679a3 3 0 1 1-.729 1.31l-8.421-4.678a3 3 0 1 1 0-4.132l8.421-4.679a3 3 0 0 1-.096-.755Z" clipRule="evenodd" />
-                    </svg>
+                    <ShareIcon className="w-5 h-5 text-current" />
                     <span className="ml-3">Share link</span>
                 </button>
 
