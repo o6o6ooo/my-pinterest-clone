@@ -3,6 +3,8 @@ import { collection, getDocs, getDoc, query, where, doc, setDoc, updateDoc, arra
 import { db, auth } from '../../firebase';
 import Masonry from 'react-masonry-css';
 import cleanInput from '../../utils/cleanInput';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
 
 export default function HomeFeed() {
 
@@ -16,7 +18,7 @@ export default function HomeFeed() {
     const [year, setYear] = useState('');
     const [tagInput, setTagInput] = useState('');
     const [tags, setTags] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // adjust number of columns
     const breakpointColumnsObj = {
@@ -241,7 +243,7 @@ export default function HomeFeed() {
     // save edit update
     const handleSaveEdit = async () => {
         if (!selectedPhoto) return;
-        setIsLoading(true);
+        setLoading(true);
 
         try {
             const photoRef = doc(db, 'photos', selectedPhoto.id);
@@ -288,7 +290,7 @@ export default function HomeFeed() {
             console.error('Failed to update photo details:', error);
             alert('Failed to save changes. Please try again.');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
@@ -454,36 +456,27 @@ export default function HomeFeed() {
                         onClick={(e) => e.stopPropagation()} // 中のクリックでは閉じない
                     >
                         {/* Year */}
-                        <div className="relative w-full">
-                            <label htmlFor="year" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                                Year
-                            </label>
-                            <input
-                                type="number"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                id="year"
-                                value={year}
-                                onChange={(e) => setYear(cleanInput(e.target.value, { toLowerCase: false }))}
-                                className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                            />
-                        </div>
+                        <FormInput
+                            label="Year"
+                            id="year"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={year}
+                            onChange={(e) => setYear(cleanInput(e.target.value))}
+                            disabled={loading}
+                        />
 
                         {/* Hashtags */}
                         <div className="w-full flex flex-col gap-2">
-                            <div className="relative w-full">
-                                <label htmlFor="tag" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                                    Hashtags
-                                </label>
-                                <input
-                                    id="tag"
-                                    value={tagInput}
-                                    onChange={(e) => setTagInput(cleanInput(e.target.value, { toLowerCase: false }))}
-                                    onKeyDown={handleTagKeyDown}
-                                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                                    placeholder=""
-                                />
-                            </div>
+                            <FormInput
+                                id="tag"
+                                label="Hashtags"
+                                value={tagInput}
+                                onChange={(e) => setTagInput(cleanInput(e.target.value, { toLowerCase: false }))}
+                                onKeyDown={handleTagKeyDown}
+                                disabled={loading}
+                            />
 
                             {/* Selected tags */}
                             <div className="flex flex-wrap gap-2">
@@ -512,12 +505,15 @@ export default function HomeFeed() {
                         </div>
 
                         {/* save */}
-                        <button
+                        <FormButton
+                            loading={loading}
+                            type="button"
                             onClick={handleSaveEdit}
-                            className={`py-2 px-4 mt-4 rounded-lg font-medium text-white ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#0A4A6E]'}`}
+                            loadingText="Saving..."
+                            fullWidth={false}
                         >
-                            {isLoading ? 'Saving...' : 'Save'}
-                        </button>
+                            Save
+                        </FormButton>
                     </div>
                 </div>
             )}
