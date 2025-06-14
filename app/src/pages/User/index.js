@@ -7,6 +7,7 @@ import { PencilIcon } from '@heroicons/react/24/solid';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import ChangeEmail from './ChangeEmail';
 import ChangePassword from './ChangePassword';
+import CreateGroup from './CreateGroup';
 import SlideOver from '../../components/SlideOver';
 
 export default function UserSettings() {
@@ -18,6 +19,7 @@ export default function UserSettings() {
     const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
     const [showChangeEmail, setShowChangeEmail] = useState(false);
     const [showChangePassword, setShowChangePassword] = useState(false);
+    const [showCreateGroup, setShowCreateGroup] = useState(false);
 
     useEffect(() => {
         const currentUser = auth.currentUser;
@@ -93,10 +95,13 @@ export default function UserSettings() {
                 </div>
 
                 {/* create a group */}
-                <div onClick={() => navigate('/user/create-group')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => setShowCreateGroup(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Create a group</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                 </div>
+                <SlideOver open={showCreateGroup} onClose={() => setShowCreateGroup(false)}>
+                    <CreateGroup onClose={() => setShowCreateGroup(false)} />
+                </SlideOver>
 
                 {/* hashtags */}
                 <div onClick={() => navigate('/user/hashtags')} className="flex justify-between items-center py-4 cursor-pointer text-lg">

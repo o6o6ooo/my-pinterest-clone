@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getDoc, setDoc, doc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from '../../firebase';
 import cleanInput from '../../utils/cleanInput';
@@ -8,8 +7,7 @@ import FormButton from '../../components/FormButton';
 import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
 import { ShareIcon } from '@heroicons/react/24/solid';
 
-export default function CreateGroup() {
-    const navigate = useNavigate();
+export default function CreateGroup({ onClose }) {
     const [groupName, setGroupName] = useState('');
     const [groupId, setGroupId] = useState('');
     const [groupLink, setGroupLink] = useState('');
@@ -81,7 +79,7 @@ export default function CreateGroup() {
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
 
             {/* back */}
-            <button onClick={() => navigate(-1)} className="absolute top-6 left-6">
+            <button onClick={onClose} className="absolute top-6 left-6">
                 <ArrowLeftCircleIcon className="w-8 h-8 text-current" />
             </button>
             <h1 className="text-2xl font-semibold">Create a group</h1>
@@ -121,7 +119,7 @@ export default function CreateGroup() {
                     disabled
                     variant="readonly"
                 />
-                
+
                 {/* share */}
                 <button className="ml-2 text-[#0A4A6E] flex items-center" onClick={handleShare}>
                     <ShareIcon className="w-5 h-5 text-current" />
