@@ -6,7 +6,7 @@ export default function Auth() {
     const [activeTab, setActiveTab] = useState('signin');
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] font-sans px-4 text-[#0A4A6E]">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] font-sans px-4 text-[#0A4A6E]" data-testid="auth-screen">
             <div className="flex space-x-4 mb-4">
                 <button
                     onClick={() => setActiveTab('signin')}

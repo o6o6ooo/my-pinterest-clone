@@ -41,7 +41,7 @@ export default function InvitationCode() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] font-sans px-4 text-[#0A4A6E]">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] font-sans px-4 text-[#0A4A6E]" data-testid="invitation-code-screen">
             <h1 className="text-lg font-semibold mb-4">Invitation Code</h1>
 
             <form onSubmit={handleSubmit} className="flex flex-col w-full max-w-xs">

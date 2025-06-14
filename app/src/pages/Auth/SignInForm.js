@@ -22,7 +22,6 @@ export default function SignInForm() {
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            console.log('Signed in successfully!');
         } catch (err) {
             setError('Failed to sign in. Please check your credentials.');
         } finally {
@@ -68,7 +67,7 @@ export default function SignInForm() {
                         required
                         disabled={loading}
                     />
-                    
+
                     {/* Password */}
                     <FormInput
                         label="Password"
@@ -83,7 +82,7 @@ export default function SignInForm() {
 
                     <FormButton loading={loading} loadingText="Signing in...">
                         Sign In
-                    </FormButton>                  
+                    </FormButton>
                     <p
                         className="mt-4 text-sm text-[#0A4A6E] underline cursor-pointer select-none"
                         onClick={() => {
@@ -108,8 +107,8 @@ export default function SignInForm() {
                         required
                         disabled={loading}
                     />
-                    
-                        <FormButton type="button" onClick={handleResetPassword} loading={loading} loadingText="Sending...">
+
+                    <FormButton type="button" onClick={handleResetPassword} loading={loading} loadingText="Sending...">
                         Send Reset Email
                     </FormButton>
                     {resetMessage && (
