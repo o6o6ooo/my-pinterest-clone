@@ -1,10 +1,16 @@
-import { useEffect, useState } from 'react'; 
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../../firebase';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { PencilIcon } from '@heroicons/react/24/solid';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import ChangeEmail from './ChangeEmail';
+import ChangePassword from './ChangePassword';
+import CreateGroup from './CreateGroup';
+import EditGroup from './EditGroup';
+import Hashtags from './Hashtags';
+import SlideOver from '../../components/SlideOver';
 
 export default function UserSettings() {
     const navigate = useNavigate();
@@ -13,9 +19,15 @@ export default function UserSettings() {
     const [icon, setIcon] = useState('');
     const [bgColour, setbgColour] = useState('');
     const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
+    const [showChangeEmail, setShowChangeEmail] = useState(false);
+    const [showChangePassword, setShowChangePassword] = useState(false);
+    const [showCreateGroup, setShowCreateGroup] = useState(false);
+    const [showEditGroup, setShowEditGroup] = useState(false);
+    const [showHashtags, setShowHashtags] = useState(false);
 
     useEffect(() => {
         const currentUser = auth.currentUser;
+
         if (currentUser) {
             setUserEmail(currentUser.email);
             setDisplayName(currentUser.displayName);
@@ -60,37 +72,52 @@ export default function UserSettings() {
 
             <div className="w-full max-w-sm mt-10 space-y-2">
                 {/* email */}
-                <div onClick={() => navigate('/user/change-email')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => setShowChangeEmail(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Email</span>
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">{userEmail}</span>
                         <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                     </div>
                 </div>
+                <SlideOver open={showChangeEmail} onClose={() => setShowChangeEmail(false)}>
+                    <ChangeEmail onClose={() => setShowChangeEmail(false)} />
+                </SlideOver>
 
                 {/* password */}
-                <div onClick={() => navigate('/user/change-password')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => setShowChangePassword(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Password</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                 </div>
+                <SlideOver open={showChangePassword} onClose={() => setShowChangePassword(false)}>
+                    <ChangePassword onClose={() => setShowChangePassword(false)} />
+                </SlideOver>
 
                 {/* your groups */}
-                <div onClick={() => navigate('/user/edit-group')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => setShowEditGroup(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Your groups</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                 </div>
+                <SlideOver open={showEditGroup} onClose={() => setShowEditGroup(false)}>
+                    <EditGroup onClose={() => setShowEditGroup(false)} />
+                </SlideOver>
 
                 {/* create a group */}
-                <div onClick={() => navigate('/user/create-group')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => setShowCreateGroup(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Create a group</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                 </div>
+                <SlideOver open={showCreateGroup} onClose={() => setShowCreateGroup(false)}>
+                    <CreateGroup onClose={() => setShowCreateGroup(false)} />
+                </SlideOver>
 
                 {/* hashtags */}
-                <div onClick={() => navigate('/user/hashtags')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => setShowHashtags(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Hashtags</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                 </div>
+                <SlideOver open={showHashtags} onClose={() => setShowHashtags(false)}>
+                    <Hashtags onClose={() => setShowHashtags(false)} />
+                </SlideOver>
 
                 {/* sign out */}
                 <div className="flex justify-between items-center py-4 cursor-pointer text-lg" onClick={handleSignOut}>

@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
 
-export default function Hashtags() {
-    const navigate = useNavigate();
+export default function Hashtags({ onClose }) {
     const [hashtags, setHashtags] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [successMessage, setSuccessMessage] = useState('');
@@ -138,7 +136,7 @@ export default function Hashtags() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
             {/* back */}
-            <button onClick={() => navigate(-1)} className="absolute top-6 left-6">
+            <button onClick={onClose} className="absolute top-6 left-6">
                 <ArrowLeftCircleIcon className="w-8 h-8 text-current" />
             </button>
 

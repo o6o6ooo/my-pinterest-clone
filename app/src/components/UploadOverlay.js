@@ -25,7 +25,7 @@ export default function UploadOverlay({ isOpen, onClose }) {
             navigate('/post', { state: { files: selectedFiles } });
             onClose();
         }
-      };
+    };
 
     return (
         <div
@@ -33,7 +33,7 @@ export default function UploadOverlay({ isOpen, onClose }) {
             onClick={handleOverlayClick}
         >
             <div
-                className="fixed bg-white rounded-xl shadow-lg flex flex-col items-center justify-center p-6 border border-[#0A4A6E] h-[15%] relative"
+                className="fixed bg-white rounded-xl shadow-lg flex flex-col items-center justify-center p-6 border border-[#0A4A6E] h-[15%]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* close button*/}
