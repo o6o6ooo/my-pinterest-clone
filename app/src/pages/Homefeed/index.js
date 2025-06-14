@@ -6,6 +6,7 @@ import cleanInput from '../../utils/cleanInput';
 import FormInput from '../../components/FormInput';
 import FormButton from '../../components/FormButton';
 import { XMarkIcon } from '@heroicons/react/24/solid';
+import Loading from '../../components/Loading';
 
 export default function HomeFeed() {
 
@@ -44,6 +45,7 @@ export default function HomeFeed() {
         };
 
         const fetchPhotos = async () => {
+            setLoading(true);
             const q = query(collection(db, 'photos'));
             const snapshot = await getDocs(q);
             const photoData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -112,6 +114,7 @@ export default function HomeFeed() {
             await fetchGroups();
             await fetchPhotos();
             await fetchUserHashtags();
+            setLoading(false);
         })();
     }, []);
 
@@ -306,8 +309,6 @@ export default function HomeFeed() {
         }
     };
 
-    console.log('selectedPhoto:', selectedPhoto);
-
     return (
         <div className="flex flex-col min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 pb-20">
             {/* タブバー */}
@@ -324,21 +325,25 @@ export default function HomeFeed() {
             </div>
 
             {/* Masonry grid layout */}
-            <Masonry
-                breakpointCols={breakpointColumnsObj}
-                className="my-masonry-grid"
-                columnClassName="my-masonry-grid_column"
-            >
-                {filteredPhotos.map(photo => (
-                    <div key={photo.id} onClick={() => openPreview(photo)} className="relative cursor-pointer">
-                        <img
-                            src={photo.signedUrl}
-                            alt=""
-                            className="w-full rounded-xl object-cover"
-                        />
-                    </div>
-                ))}
-            </Masonry>
+            {loading ? (
+                <Loading />
+            ) : (
+                <Masonry
+                    breakpointCols={breakpointColumnsObj}
+                    className="my-masonry-grid"
+                    columnClassName="my-masonry-grid_column"
+                >
+                    {filteredPhotos.map(photo => (
+                        <div key={photo.id} onClick={() => openPreview(photo)} className="relative cursor-pointer">
+                            <img
+                                src={photo.signedUrl}
+                                alt=""
+                                className="w-full rounded-xl object-cover"
+                            />
+                        </div>
+                    ))}
+                </Masonry>
+            )}
 
             {/* preview */}
             {showPreview && selectedPhoto && (
