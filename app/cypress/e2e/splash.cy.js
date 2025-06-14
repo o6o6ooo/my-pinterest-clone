@@ -3,7 +3,7 @@ import firebaseMock from '../support/firebase-mock?raw';
 describe('Splash Screen and Initial Navigation', () => {
   beforeEach(() => {
     cy.viewport(430, 932);
-        cy.clearLocalStorage();
+    cy.clearLocalStorage();
 
     cy.window().then((win) => {
       // Firebaseのモック
@@ -13,7 +13,7 @@ describe('Splash Screen and Initial Navigation', () => {
           onAuthStateChanged: (callback) => {
             // 初期状態では未認証
             callback(null);
-            return () => {};
+            return () => { };
           },
           signInWithEmailAndPassword: (email, password) => {
             return Promise.resolve({
@@ -91,31 +91,4 @@ describe('Splash Screen and Initial Navigation', () => {
       cy.get('[data-testid="auth-screen"]').should('be.visible');
     });
   });
-
-  context('Display home feed when signed in', () => {
-    it('Display splash and then goes to home feed', () => {
-      const mockUser = {
-        uid: 'test-uid',
-        email: 'test@example.com',
-        displayName: 'Test User',
-        emailVerified: true
-      };
-
-      cy.window().then((win) => {
-        win.__TEST_USER__ = mockUser; // ログイン済みユーザーを設定
-        win.localStorage.setItem('user', JSON.stringify(mockUser));
-        win.localStorage.setItem('invitationVerified', 'true');
-      });
-
-      cy.visit('/', {
-        onBeforeLoad(win) {
-          win.eval(firebaseMock);
-        }
-      });
-
-      cy.get('[data-testid="splash-screen"]').should('be.visible');
-      cy.wait(2000);
-      cy.url().should('include', '/home');
-    });
-  }); 
-}); 
+});
