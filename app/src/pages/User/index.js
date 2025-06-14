@@ -8,6 +8,7 @@ import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import ChangeEmail from './ChangeEmail';
 import ChangePassword from './ChangePassword';
 import CreateGroup from './CreateGroup';
+import EditGroup from './EditGroup';
 import SlideOver from '../../components/SlideOver';
 
 export default function UserSettings() {
@@ -20,6 +21,7 @@ export default function UserSettings() {
     const [showChangeEmail, setShowChangeEmail] = useState(false);
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [showCreateGroup, setShowCreateGroup] = useState(false);
+    const [showEditGroup, setShowEditGroup] = useState(false);
 
     useEffect(() => {
         const currentUser = auth.currentUser;
@@ -89,10 +91,13 @@ export default function UserSettings() {
                 </SlideOver>
 
                 {/* your groups */}
-                <div onClick={() => navigate('/user/edit-group')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => setShowEditGroup(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Your groups</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                 </div>
+                <SlideOver open={showEditGroup} onClose={() => setShowEditGroup(false)}>
+                    <EditGroup onClose={() => setShowEditGroup(false)} />
+                </SlideOver>
 
                 {/* create a group */}
                 <div onClick={() => setShowCreateGroup(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">

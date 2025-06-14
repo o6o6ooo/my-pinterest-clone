@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, updateDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db } from '../../firebase';
 import cleanInput from '../../utils/cleanInput';
@@ -8,8 +7,7 @@ import FormButton from '../../components/FormButton';
 import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
 import { ShareIcon } from '@heroicons/react/24/solid';
 
-export default function EditGroup() {
-    const navigate = useNavigate();
+export default function EditGroup({ onClose }) {
     const [groups, setGroups] = useState([]);
     const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
     const [groupName, setGroupName] = useState('');
@@ -101,7 +99,7 @@ export default function EditGroup() {
             };
 
             const originalDocId = groups[currentGroupIndex].id;
-            await updateDoc(doc(db, 'groups', originalDocId), updatedData);            
+            await updateDoc(doc(db, 'groups', originalDocId), updatedData);
             setSuccessMessage('Group updated successfully!');
             setGroupLink(updatedData.group_link);
         } catch (error) {
@@ -129,7 +127,7 @@ export default function EditGroup() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
             {/* back */}
-            <button onClick={() => navigate(-1)} className="absolute top-6 left-6">
+            <button onClick={onClose} className="absolute top-6 left-6">
                 <ArrowLeftCircleIcon className="w-8 h-8 text-current" />
             </button>
             <h1 className="text-2xl font-semibold">Your groups</h1>
