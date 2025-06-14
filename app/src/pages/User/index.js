@@ -5,8 +5,8 @@ import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { PencilIcon } from '@heroicons/react/24/solid';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
-import ChangeEmailSlideOver from './ChangeEmailSlideOver';
-import { AnimatePresence } from 'framer-motion';
+import ChangeEmail from './ChangeEmail';
+import SlideOver from '../../components/SlideOver';
 
 export default function UserSettings() {
     const navigate = useNavigate();
@@ -71,14 +71,9 @@ export default function UserSettings() {
                         <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                     </div>
                 </div>
-                <AnimatePresence>
-                    {showChangeEmail && (
-                        <ChangeEmailSlideOver
-                            open={showChangeEmail}
-                            onClose={() => setShowChangeEmail(false)}
-                        />
-                    )}
-                </AnimatePresence>
+                <SlideOver open={showChangeEmail} onClose={() => setShowChangeEmail(false)}>
+                    <ChangeEmail onClose={() => setShowChangeEmail(false)} />
+                </SlideOver>
 
                 {/* password */}
                 <div onClick={() => navigate('/user/change-password')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
