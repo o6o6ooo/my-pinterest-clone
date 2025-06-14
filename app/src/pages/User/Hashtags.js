@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
+import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
 
-export default function Hashtags() {
-    const navigate = useNavigate();
+export default function Hashtags({ onClose }) {
     const [hashtags, setHashtags] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [successMessage, setSuccessMessage] = useState('');
@@ -15,7 +14,6 @@ export default function Hashtags() {
         const fetchHashtags = async () => {
             if (!auth.currentUser) return;
             try {
-                // 所属グループ取得
                 const groupSnapshot = await getDocs(query(
                     collection(db, 'groups'),
                     where('members', 'array-contains', auth.currentUser.uid)
@@ -27,7 +25,6 @@ export default function Hashtags() {
                     return;
                 }
 
-                // 各グループの user_hashtag_settings を取得
                 const promises = groupIds.map(groupId =>
                     getDocs(query(
                         collection(db, 'user_hashtag_settings'),
@@ -43,7 +40,6 @@ export default function Hashtags() {
                     });
                 });
 
-                // 自分の設定のみ取得
                 const settingSnapshot = await getDocs(query(
                     collection(db, 'user_hashtag_settings'),
                     where('user_id', '==', auth.currentUser.uid)
@@ -54,11 +50,9 @@ export default function Hashtags() {
                     settingsMap[data.hashtag] = data.show_in_feed;
                 });
 
-                // 各ハッシュタグについて、自分の設定があればそれを使う。なければ必ずオフにする
                 const uniqueHashtagsMap = {};
                 allSettings.forEach(setting => {
                     const tag = setting.hashtag;
-                    // まだマップにない場合 or 自分の設定が見つかったら更新
                     if (!uniqueHashtagsMap[tag] || setting.user_id === auth.currentUser.uid) {
                         uniqueHashtagsMap[tag] = {
                             ...setting,
@@ -116,7 +110,7 @@ export default function Hashtags() {
                             });
                         }
                     } else {
-                        // 既存レコードがある場合はすべて更新
+                        // 既存レコードがある場合はすべて更新(fix needed)
                         await Promise.all(snapshot.docs.map(docSnapshot => {
                             const userSettingRef = doc(db, 'user_hashtag_settings', docSnapshot.id);
                             return setDoc(userSettingRef, {
@@ -142,10 +136,8 @@ export default function Hashtags() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
             {/* back */}
-            <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
-                    <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
-                </svg>
+            <button onClick={onClose} className="absolute top-6 left-6">
+                <ArrowLeftCircleIcon className="w-8 h-8 text-current" />
             </button>
 
             <h1 className="text-xl font-semibold">Choose hashtags</h1>

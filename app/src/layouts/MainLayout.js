@@ -1,6 +1,8 @@
-import { Outlet, useLocation, useNavigate } from 'react-router-dom'; 
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import BottomNavBar from '../components/BottomNavBar';
 import UploadOverlay from '../components/UploadOverlay';
+import { AnimatePresence } from 'framer-motion';
+import PageWrapper from '../components/PageWrapper';
 
 export default function MainLayout() {
     const location = useLocation();
@@ -10,7 +12,6 @@ export default function MainLayout() {
     const isUploadOpen = params.get('upload') === 'true';
 
     const handleCloseUpload = () => {
-        // クエリパラメータだけを消す（ページは変えない）
         params.delete('upload');
         navigate(`${location.pathname}?${params.toString()}`);
     };
@@ -18,10 +19,14 @@ export default function MainLayout() {
     return (
         <div className="relative text-[#0A4A6E]">
             <main>
-                <Outlet />
+                <AnimatePresence mode="wait" initial={false}>
+                    <PageWrapper key={location.pathname}>
+                        <Outlet />
+                    </PageWrapper>
+                </AnimatePresence>
             </main>
             <BottomNavBar />
             {isUploadOpen && <UploadOverlay isOpen={isUploadOpen} onClose={handleCloseUpload} />}
         </div>
     );
-  }
+}

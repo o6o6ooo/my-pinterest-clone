@@ -9,10 +9,10 @@ export default function SplashAnimation() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            navigate('/invite'); // 👈 招待コード画面へ遷移
-        }, 3000); // 3秒後に遷移
+            navigate('/invite');
+        }, 3000);
 
-        return () => clearTimeout(timer); // クリーンアップ
+        return () => clearTimeout(timer);
     }, [navigate]);  
 
     return (

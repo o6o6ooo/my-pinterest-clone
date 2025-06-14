@@ -60,7 +60,7 @@ export default function VerifyEmail() {
     };
 
     return (
-        <div className="px-6 py-8 flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] px-4 text-[#0A4A6E]">
+        <div className="px-6 py-8 flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E]">
             <h1 className="text-lg font-semibold mb-4">Verify Your Email</h1>
             <p className="mb-5 text-center max-w-xs">Please check your email and click the verification link to activate your account.</p>
 

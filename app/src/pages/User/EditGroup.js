@@ -1,20 +1,23 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, updateDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db } from '../../firebase';
 import cleanInput from '../../utils/cleanInput';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
+import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
+import { ShareIcon } from '@heroicons/react/24/solid';
 
-export default function EditGroup() {
-    const navigate = useNavigate();
+export default function EditGroup({ onClose }) {
     const [groups, setGroups] = useState([]);
     const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
     const [groupName, setGroupName] = useState('');
     const [groupId, setGroupId] = useState('');
     const [groupLink, setGroupLink] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState([]);
     const [successMessage, setSuccessMessage] = useState('');
     const [members, setMembers] = useState([]);
+    const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
 
     // get group info
     useEffect(() => {
@@ -52,6 +55,7 @@ export default function EditGroup() {
                 return {
                     icon: userData.icon,
                     colour: userData.bgColour,
+                    name: userData.name,
                 };
             });
 
@@ -85,7 +89,7 @@ export default function EditGroup() {
             return;
         }
 
-        setIsLoading(true);
+        setLoading(true);
 
         try {
             const updatedData = {
@@ -95,13 +99,14 @@ export default function EditGroup() {
             };
 
             const originalDocId = groups[currentGroupIndex].id;
-            await updateDoc(doc(db, 'groups', originalDocId), updatedData);            setSuccessMessage('Group updated successfully!');
+            await updateDoc(doc(db, 'groups', originalDocId), updatedData);
+            setSuccessMessage('Group updated successfully!');
             setGroupLink(updatedData.group_link);
         } catch (error) {
             console.error('Group update error:', error);
             setErrors(['Failed to update group.']);
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
@@ -122,12 +127,9 @@ export default function EditGroup() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
             {/* back */}
-            <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
-                    <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
-                </svg>
+            <button onClick={onClose} className="absolute top-6 left-6">
+                <ArrowLeftCircleIcon className="w-8 h-8 text-current" />
             </button>
-
             <h1 className="text-2xl font-semibold">Your groups</h1>
 
             {/* group swtich button */}
@@ -145,55 +147,50 @@ export default function EditGroup() {
 
             <div className="px-6 py-8 w-full max-w-sm flex flex-col gap-6">
                 {/* Group ID */}
-                <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">Group ID</label>
-                    <input
-                        type="text"
-                        value={groupId}
-                        onChange={(e) => {
-                            const cleanedId = cleanInput(e.target.value, { toLowerCase: true });
-                            setGroupId(cleanedId);
-                            setGroupLink(`https://your-app.com/group/join/${cleanedId}`);
-                        }}
-                        className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
-                    />
-                </div>
+                <FormInput
+                    label="Group ID"
+                    id="groupId"
+                    type="text"
+                    value={groupId}
+                    onChange={(e) => {
+                        const cleanedId = cleanInput(e.target.value, { toLowerCase: true });
+                        setGroupId(cleanedId);
+                        setGroupLink(`https://kuusi-f06ab.web.app/group/join/${cleanedId}`);
+                    }}
+                    required
+                    disabled={loading}
+                />
 
                 {/* Group Name */}
-                <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">Group name</label>
-                    <input
-                        type="text"
-                        value={groupName}
-                        onChange={(e) => setGroupName(cleanInput(e.target.value, { toLowerCase: false }))}
-                        className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
-                    />
-                </div>
+                <FormInput
+                    label="Group name"
+                    id="groupName"
+                    type="text"
+                    value={groupName}
+                    onChange={(e) => setGroupName(cleanInput(e.target.value))}
+                    required
+                    disabled={loading}
+                />
 
                 {/* Group Link */}
-                <div className="flex flex-col relative bg-[#dfdfdf] rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">Group link</label>
-                    <div className="flex items-center pt-4">
-                        <input
-                            type="text"
-                            value={groupLink}
-                            readOnly
-                            className="flex-1 bg-transparent outline-none text-gray-600"
-                        />
-                    </div>
-                </div>
+                <FormInput
+                    label="Group link"
+                    type="text"
+                    value={groupLink}
+                    readOnly
+                    disabled
+                    variant="readonly"
+                />
 
                 {/* share */}
                 <button className="ml-2 text-[#0A4A6E] flex items-center" onClick={handleShare}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5">
-                        <path fillRule="evenodd" d="M15.75 4.5a3 3 0 1 1 .825 2.066l-8.421 4.679a3.002 3.002 0 0 1 0 1.51l8.421 4.679a3 3 0 1 1-.729 1.31l-8.421-4.678a3 3 0 1 1 0-4.132l8.421-4.679a3 3 0 0 1-.096-.755Z" clipRule="evenodd" />
-                    </svg>
+                    <ShareIcon className="w-5 h-5 text-current" />
                     <span className="ml-3">Share link</span>
                 </button>
 
                 {/* Member icons */}
                 {members.length > 0 && (
-                    <div className="flex items-center justify-center space-x-[-10px]">
+                    <div className="flex items-center justify-center space-x-[-10px]" onClick={() => setIsMemberModalOpen(true)}>
                         {members.map((member, idx) => (
                             <div
                                 key={idx}
@@ -207,13 +204,14 @@ export default function EditGroup() {
                 )}
 
                 {/* Save button */}
-                <button
+                <FormButton
+                    type="button"
                     onClick={handleSaveGroup}
-                    disabled={isLoading}
-                    className={`py-2 px-4 mt-3 rounded-lg font-medium text-center transition-colors text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'}`}
+                    loading={loading}
+                    loadingText="Saving..."
                 >
-                    {isLoading ? 'Saving...' : 'Save'}
-                </button>
+                    Save
+                </FormButton>
 
                 {/* Errors */}
                 {errors.length > 0 && (
@@ -228,6 +226,27 @@ export default function EditGroup() {
                 {successMessage && (
                     <div className="max-w-xs mt-4 p-3 text-[#0A4A6E] text-sm font-medium">
                         {successMessage}
+                    </div>
+                )}
+
+                {/* members */}
+                {isMemberModalOpen && (
+                    <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center" onClick={() => setIsMemberModalOpen(false)}>
+                        <div className="bg-white rounded-xl shadow-lg p-4 w-70 max-h-[80vh] overflow-y-auto relative items-center border border-[#0A4A6E]" onClick={() => setIsMemberModalOpen(false)}>
+                            <div className="flex flex-col gap-4">
+                                {members.map((member, idx) => (
+                                    <div key={idx} className="flex items-center gap-3">
+                                        <div
+                                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xl border-2 border-white shadow-md"
+                                            style={{ backgroundColor: member.colour }}
+                                        >
+                                            {member.icon}
+                                        </div>
+                                        <span className="text-[#0A4A6E] text-sm font-semibold">{member.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

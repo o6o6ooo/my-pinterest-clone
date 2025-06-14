@@ -4,10 +4,7 @@ import fileUpload from 'express-fileupload';
 import dotenv from 'dotenv';
 import { v2 as cloudinary } from 'cloudinary';
 import admin from 'firebase-admin';
-import { createRequire } from 'module';
-import fs from 'fs';
 
-const require = createRequire(import.meta.url);
 dotenv.config();
 
 const app = express();
@@ -19,27 +16,24 @@ app.use(fileUpload({
     tempFileDir: '/tmp/'
 }));
 
-// Firebase Admin 初期化
 const serviceAccount = JSON.parse(
-    fs.readFileSync('./kuusi-f06ab-firebase-adminsdk-fbsvc-c6e372e5cc.json', 'utf8')
+    Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8')
 );
+
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
 });
 
-// Cloudinary 設定
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// テストルート
 app.get('/', (req, res) => {
     res.send('Hello from Server!');
 });
 
-// Firebase トークン検証ヘルパー
 const verifyFirebaseToken = async (req) => {
     const authHeader = req.headers.authorization || '';
     const idToken = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
@@ -48,7 +42,6 @@ const verifyFirebaseToken = async (req) => {
     return decodedToken.uid;
 };
 
-// アップロードエンドポイント
 app.post('/api/cloudinary-signed-urls', async (req, res) => {
     try {
         const uid = await verifyFirebaseToken(req);
@@ -87,7 +80,7 @@ app.post('/api/upload', async (req, res) => {
 
         const result = await cloudinary.uploader.upload(file.tempFilePath, {
             folder: 'my-pinterest-clone',
-            type: 'authenticated', // 非公開用に必須
+            type: 'authenticated', //private photos
         });
 
         const signedUrl = cloudinary.url(result.public_id, {
@@ -104,7 +97,6 @@ app.post('/api/upload', async (req, res) => {
     }
 });
 
-// 画像表示用エンドポイント
 app.get('/api/image/:publicId', async (req, res) => {
     try {
         const uid = await verifyFirebaseToken(req);
@@ -114,7 +106,7 @@ app.get('/api/image/:publicId', async (req, res) => {
             type: 'authenticated',
             secure: true,
             sign_url: true,
-            expires_at: Math.floor(Date.now() / 1000) + 3600 // 1時間有効
+            expires_at: Math.floor(Date.now() / 1000) + 3600
         });
 
         res.json({ url: signedUrl });
@@ -124,7 +116,6 @@ app.get('/api/image/:publicId', async (req, res) => {
     }
 });
 
-// サーバー起動
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

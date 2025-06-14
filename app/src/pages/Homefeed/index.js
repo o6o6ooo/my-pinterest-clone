@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, where, doc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, query, where, doc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
-import { useNavigate } from 'react-router-dom';
 import Masonry from 'react-masonry-css';
 import cleanInput from '../../utils/cleanInput';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
+import { XMarkIcon } from '@heroicons/react/24/solid';
+import Loading from '../../components/Loading';
 
 export default function HomeFeed() {
-    const navigate = useNavigate();
 
     const [photos, setPhotos] = useState([]);
     const [selectedTab, setSelectedTab] = useState('all');
@@ -18,7 +20,7 @@ export default function HomeFeed() {
     const [year, setYear] = useState('');
     const [tagInput, setTagInput] = useState('');
     const [tags, setTags] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // adjust number of columns
     const breakpointColumnsObj = {
@@ -43,9 +45,26 @@ export default function HomeFeed() {
         };
 
         const fetchPhotos = async () => {
+            setLoading(true);
             const q = query(collection(db, 'photos'));
             const snapshot = await getDocs(q);
             const photoData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // 投稿者のuserId一覧を取得（重複排除）
+            const userIds = [...new Set(photoData.map(photo => photo.posted_by))];
+
+            // 各ユーザーの情報を取得
+            const userDocs = await Promise.all(
+                userIds.map(async (uid) => {
+                    const userDoc = await getDoc(doc(db, 'users', uid));
+                    return { uid, ...userDoc.data() };
+                })
+            );
+
+            const userMap = {};
+            userDocs.forEach(user => {
+                userMap[user.uid] = user;
+            });
 
             // Cloudinary署名付きURLを取得
             const idToken = await auth.currentUser.getIdToken();
@@ -53,7 +72,7 @@ export default function HomeFeed() {
 
             const response = await fetch(
                 process.env.NODE_ENV === 'development'
-                    ? 'http://localhost:5001/api/cloudinary-signed-urls'
+                    ? 'http://192.168.4.48:5001/api/cloudinary-signed-urls'
                     : 'https://kuusi.onrender.com/api/cloudinary-signed-urls',
                 {
                     method: 'POST',
@@ -67,14 +86,15 @@ export default function HomeFeed() {
 
             const signedUrls = await response.json();
 
-            // 各写真に署名付きURLを追加
-            const photoDataWithUrls = photoData.map(photo => ({
+            // 写真にsignedUrl + 投稿者情報を追加
+            const photoDataWithExtras = photoData.map(photo => ({
                 ...photo,
                 signedUrl: signedUrls[photo.photo_url],
+                posted_by_user: userMap[photo.posted_by] || null,
             }));
 
-            console.log('photourl:',signedUrls)
-            setPhotos(photoDataWithUrls);
+            console.log('Photos with user info:', photoDataWithExtras);
+            setPhotos(photoDataWithExtras);
         };
 
         const fetchUserHashtags = async () => {
@@ -94,6 +114,7 @@ export default function HomeFeed() {
             await fetchGroups();
             await fetchPhotos();
             await fetchUserHashtags();
+            setLoading(false);
         })();
     }, []);
 
@@ -226,7 +247,7 @@ export default function HomeFeed() {
     // save edit update
     const handleSaveEdit = async () => {
         if (!selectedPhoto) return;
-        setIsLoading(true);
+        setLoading(true);
 
         try {
             const photoRef = doc(db, 'photos', selectedPhoto.id);
@@ -273,7 +294,7 @@ export default function HomeFeed() {
             console.error('Failed to update photo details:', error);
             alert('Failed to save changes. Please try again.');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
@@ -303,50 +324,78 @@ export default function HomeFeed() {
                 ))}
             </div>
 
-            {/* Masonry グリッド */}
-            <Masonry
-                breakpointCols={breakpointColumnsObj}
-                className="my-masonry-grid"
-                columnClassName="my-masonry-grid_column"
-            >
-                {filteredPhotos.map(photo => (
-                    <div key={photo.id} onClick={() => openPreview(photo)} className="relative cursor-pointer">
-                        <img
-                            src={photo.signedUrl}
-                            alt=""
-                            className="w-full rounded-xl object-cover"
-                        />
-                    </div>
-                ))}
-            </Masonry>
+            {/* Masonry grid layout */}
+            {loading ? (
+                <Loading />
+            ) : (
+                <Masonry
+                    breakpointCols={breakpointColumnsObj}
+                    className="my-masonry-grid"
+                    columnClassName="my-masonry-grid_column"
+                >
+                    {filteredPhotos.map(photo => (
+                        <div key={photo.id} onClick={() => openPreview(photo)} className="relative cursor-pointer">
+                            <img
+                                src={photo.signedUrl}
+                                alt=""
+                                className="w-full rounded-xl object-cover"
+                            />
+                        </div>
+                    ))}
+                </Masonry>
+            )}
 
-            {/* プレビュー */}
+            {/* preview */}
             {showPreview && selectedPhoto && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-auto bg-black bg-opacity-70"
+                    className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black bg-opacity-70 bottom-[10vh]"
                     onClick={() => {
                         closePreview();
-                      }}
+                    }}
                 >
-                    <div className="max-w-[90vw] max-h-[90vh] relative" onClick={(e) => {
-                        e.stopPropagation();
-                    }}>
+                    <div
+                        className="max-w-[90vw] max-h-[90vh] relative"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            closePreview();
+                        }}
+                    >
+                        {/* photo */}
                         <img
-                            src={selectedPhoto.photo_url}
+                            src={selectedPhoto.signedUrl}
                             alt=""
-                            className="max-w-full max-h-full rounded-xl"
+                            className="max-w-full max-h-[70vh] rounded-xl"
                         />
-                        {/* 年・ハッシュタグ・ハート */}
+
+                        {/* year and hashtags */}
                         <div className="absolute bottom-0 left-0 right-0 text-white p-2 flex flex-wrap gap-2 items-center justify-between rounded-b-xl">
-                            <span className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium">{selectedPhoto.year}</span>
+                            <span className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium">
+                                {selectedPhoto.year}
+                            </span>
                             <div className="flex gap-1 flex-wrap">
                                 {selectedPhoto.hashtags?.map((tag, idx) => (
-                                    <span key={idx} className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium">
+                                    <span
+                                        key={idx}
+                                        className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium"
+                                    >
                                         {tag}
                                     </span>
                                 ))}
                             </div>
-                            <div className="absolute bottom-40 -left-3 flex flex-col gap-3 z-10">
+                        </div>
+
+                        {/* user icon and buttons */}
+                        {selectedPhoto.posted_by_user && (
+                            <div className="absolute left-0 -bottom-12 flex items-center gap-2 z-10">
+                                <div
+                                    className="rounded-full text-2xl w-10 h-10 flex items-center justify-center border-2 border-white shadow-md"
+                                    style={{
+                                        backgroundColor:
+                                            selectedPhoto.posted_by_user.bgColour,
+                                    }}
+                                >
+                                    {selectedPhoto.posted_by_user.icon}
+                                </div>
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -354,7 +403,11 @@ export default function HomeFeed() {
                                     }}
                                     className="bg-white rounded-full w-10 h-10 flex items-center justify-center shadow text-xl"
                                 >
-                                    {selectedPhoto.favourites?.includes(auth.currentUser.uid) ? '❤️' : '🤍'}
+                                    {selectedPhoto.favourites?.includes(
+                                        auth.currentUser.uid
+                                    )
+                                        ? '❤️'
+                                        : '🤍'}
                                 </button>
                                 <button
                                     onClick={(e) => {
@@ -368,7 +421,11 @@ export default function HomeFeed() {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        if (window.confirm('Are you sure you want to delete this photo?')) {
+                                        if (
+                                            window.confirm(
+                                                'Are you sure you want to delete this photo?'
+                                            )
+                                        ) {
                                             deletePhoto(selectedPhoto.id);
                                             closePreview();
                                         }
@@ -378,9 +435,9 @@ export default function HomeFeed() {
                                     🗑️
                                 </button>
                             </div>
-                        </div>
+                        )}
 
-                        {/* 閉じるボタン */}
+                        {/* close */}
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -405,36 +462,27 @@ export default function HomeFeed() {
                         onClick={(e) => e.stopPropagation()} // 中のクリックでは閉じない
                     >
                         {/* Year */}
-                        <div className="relative w-full">
-                            <label htmlFor="year" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                                Year
-                            </label>
-                            <input
-                                type="number"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                id="year"
-                                value={year}
-                                onChange={(e) => setYear(cleanInput(e.target.value, { toLowerCase: false }))}
-                                className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                            />
-                        </div>
+                        <FormInput
+                            label="Year"
+                            id="year"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={year}
+                            onChange={(e) => setYear(cleanInput(e.target.value))}
+                            disabled={loading}
+                        />
 
                         {/* Hashtags */}
                         <div className="w-full flex flex-col gap-2">
-                            <div className="relative w-full">
-                                <label htmlFor="tag" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                                    Hashtags
-                                </label>
-                                <input
-                                    id="tag"
-                                    value={tagInput}
-                                    onChange={(e) => setTagInput(cleanInput(e.target.value, { toLowerCase: false }))}
-                                    onKeyDown={handleTagKeyDown}
-                                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                                    placeholder=""
-                                />
-                            </div>
+                            <FormInput
+                                id="tag"
+                                label="Hashtags"
+                                value={tagInput}
+                                onChange={(e) => setTagInput(cleanInput(e.target.value, { toLowerCase: false }))}
+                                onKeyDown={handleTagKeyDown}
+                                disabled={loading}
+                            />
 
                             {/* Selected tags */}
                             <div className="flex flex-wrap gap-2">
@@ -447,28 +495,22 @@ export default function HomeFeed() {
                                         }}
                                     >
                                         {tag}
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            strokeWidth={2}
-                                            stroke="currentColor"
-                                            className="w-3 h-3 ml-1"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                        </svg>
+                                        <XMarkIcon className="w-3 h-3 ml-1 text-white" />
                                     </span>
                                 ))}
                             </div>
                         </div>
 
-                        {/* 保存ボタン */}
-                        <button
+                        {/* save */}
+                        <FormButton
+                            loading={loading}
+                            type="button"
                             onClick={handleSaveEdit}
-                            className={`py-2 px-4 mt-4 rounded-lg font-medium text-white ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#0A4A6E]'}`}
+                            loadingText="Saving..."
+                            fullWidth={false}
                         >
-                            {isLoading ? 'Saving...' : 'Save'}
-                        </button>
+                            Save
+                        </FormButton>
                     </div>
                 </div>
             )}

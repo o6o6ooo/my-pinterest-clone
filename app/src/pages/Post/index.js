@@ -1,9 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { db, storage, auth } from '../../firebase';
+import { db, auth } from '../../firebase';
 import { collection, addDoc, serverTimestamp, getDocs, setDoc, doc } from 'firebase/firestore'; 
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import cleanInput from '../../utils/cleanInput';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
+import FormDropdown from '../../components/FormDropdown';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 
 export default function Post() {
     const location = useLocation();
@@ -14,11 +17,10 @@ export default function Post() {
     const [tagInput, setTagInput] = useState('');
     const [tags, setTags] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState(null);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [userGroups, setUserGroups] = useState([]);
     const [errors, setErrors] = useState([]);
     const currentYear = new Date().getFullYear();
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleThumbnailClick = () => {
         setShowFullScreen(true);
@@ -70,7 +72,7 @@ export default function Post() {
         if (newErrors.length > 0) return;
 
         try {
-            setIsLoading(true);
+            setLoading(true);
             const idToken = await auth.currentUser.getIdToken();
 
             // upload to Cloudinary
@@ -93,12 +95,14 @@ export default function Post() {
             if (!response.ok) throw new Error('Upload failed.');
             const data = await response.json();
             console.log('Upload response data:', data);
+            const userId = auth.currentUser.uid;
 
             if (data.public_id) {
                 // save photo in Firestore
                 const photoData = {
                     photo_url: data.public_id,
                     group_id: selectedGroup.id,
+                    posted_by: userId,
                     year: year || null,
                     hashtags: tags.map(tag => tag.toLowerCase()),
                     created_at: serverTimestamp(),
@@ -106,8 +110,7 @@ export default function Post() {
 
                 await addDoc(collection(db, 'photos'), photoData);
 
-                // 追加: ユーザのハッシュタグ設定を保存（ON状態）
-                const userId = auth.currentUser.uid;
+                // save hashtags in Firestore
                 await Promise.all(tags.map(async (tag) => {
                     const docId = `${userId}_${tag.toLowerCase()}_${selectedGroup.id}`;
                     const settingRef = doc(db, 'user_hashtag_settings', docId);
@@ -129,7 +132,7 @@ export default function Post() {
             console.error('Upload error:', error);
             alert('Failed to upload.');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
@@ -162,7 +165,7 @@ export default function Post() {
                         alt="preview"
                         className="w-20 h-20 object-cover rounded shadow absolute"
                         style={{
-                            left: index * 10, // 少しずつ右にズラす
+                            left: index * 10,
                             zIndex: files.length - index,
                         }}
                     />
@@ -175,116 +178,69 @@ export default function Post() {
                 )}
             </div>
 
-            {/* Year */}
-            <div className="relative w-full max-w-xs mt-5">
-                <label htmlFor="year" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                    Year
-                </label>
-                <input
-                    type="number"
+            <div className="w-full max-w-xs flex flex-col gap-3">
+                {/* Year */}
+                <FormInput
+                    label="Year"
+                    id="year"
+                    type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    id="year"
                     value={year}
                     onChange={handleYearChange}
-                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
+                    disabled={loading}
                 />
-            </div>
 
-            {/* Hashtags */}
-            <div className="w-full max-w-xs flex flex-col gap-2 mt-5">
-                <div className="relative w-full">
-                    <label htmlFor="tag" className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                        Hashtags
-                    </label>
-                    <input
-                        id="tag"
-                        value={tagInput}
-                        onChange={(e) => setTagInput(cleanInput(e.target.value, { toLowerCase: false }))}
-                        onKeyDown={handleTagKeyDown}
-                        className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white focus:outline-none focus:ring-1 focus:ring-[#0A4A6E] transition-all"
-                        placeholder=""
-                    />
-                </div>
+                {/* Hashtags */}
+                <FormInput
+                    id="tag"
+                    label="Hashtags"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(cleanInput(e.target.value, { toLowerCase: false }))}
+                    onKeyDown={handleTagKeyDown}
+                    disabled={loading}
+                />
 
                 {/* selected tags */}
-                <div className="flex flex-wrap gap-2">
-                    {tags.map((tag, index) => (
-                        <span
-                            key={index}
-                            className="flex items-center bg-[#0A4A6E] text-white text-xs font-medium rounded-full px-3 py-1 cursor-pointer"
-                            onClick={() => handleRemoveTag(index)}
-                        >
-                            {tag}
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={2}
-                                stroke="currentColor"
-                                className="w-3 h-3 ml-1"
+                {tags.length > 0 && (
+                    <div className="flex flex-wrap">
+                        {tags.map((tag, index) => (
+                            <span
+                                key={index}
+                                className="flex items-center bg-[#0A4A6E] text-white text-xs font-medium rounded-full px-3 py-1 cursor-pointer"
+                                onClick={() => handleRemoveTag(index)}
                             >
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                            </svg>
-                        </span>
-                    ))}
-                </div>
-            </div>
-
-
-            {/* Group */}
-            <div className="relative w-full max-w-xs mt-5">
-                <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">
-                    Group
-                </label>
-                <button
-                    type="button"
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="w-full border border-[#0A4A6E] rounded-lg p-3 pt-6 pb-3 text-[#0A4A6E] bg-white flex justify-between items-center"
-                >
-                    {selectedGroup ? selectedGroup.group_name : "Select Group"}
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-5 h-5"
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                </button>
-
-                {isDropdownOpen && (
-                    <div className="absolute top-full mt-1 w-full border border-[#0A4A6E] rounded-lg bg-white shadow z-50">
-                        {userGroups.map(group => (
-                            <button
-                                key={group.id}
-                                className="w-full text-left p-3 hover:bg-gray-100 text-[#0A4A6E]"
-                                onClick={() => {
-                                    setSelectedGroup(group);
-                                    setIsDropdownOpen(false);
-                                }}
-                            >
-                                {group.group_name}
-                            </button>
+                                {tag}
+                                <XMarkIcon className="w-3 h-3 ml-1 text-white" />
+                            </span>
                         ))}
                     </div>
                 )}
+
+                {/* Group Dropdown */}
+                <FormDropdown
+                    label="Group"
+                    id="group-select"
+                    options={userGroups}
+                    selected={selectedGroup}
+                    onSelect={setSelectedGroup}
+                    disabled={loading}
+                />
+
+                {/* post button */}
+                <FormButton
+                    loading={loading}
+                    type="button"
+                    onClick={handleUpload}
+                    loadingText="Posting..."
+                    fullWidth={false}
+                >
+                    Post
+                </FormButton>
             </div>
 
-            {/* post button */}
-            <button
-                onClick={handleUpload}
-                disabled={isLoading}
-                className={`w-full py-3 mt-6 rounded-lg font-medium text-center transition-colors max-w-xs ${isLoading ? 'bg-[#0A4A6E] bg-opacity-70 cursor-not-allowed' : 'bg-[#0A4A6E] hover:bg-[#08324E]'
-                    } text-white`}
-            >
-                {isLoading ? 'Posting...' : 'Post'}
-            </button>
-
             {/* loading */}
-            {isLoading && (
+            {loading && (
                 <div className="max-w-xs mt-2 text-[#0A4A6E] text-sm font-medium">
                     Loading...
                 </div>
@@ -311,7 +267,7 @@ export default function Post() {
                                 <img
                                     src={URL.createObjectURL(file)}
                                     alt="full preview"
-                                    className="max-h-[80vh] max-w-[80vw] rounded"
+                                    className="max-h-[80vh] max-w-[80vw] rounded-xl"
                                 />
                                 <button
                                     onClick={(e) => {
@@ -321,7 +277,7 @@ export default function Post() {
                                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
                                     aria-label="Remove image"
                                 >
-                                    ✕
+                                    <XMarkIcon className="w-4 h-4 text-white" />
                                 </button>
                             </div>
                         ))}

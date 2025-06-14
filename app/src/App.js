@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, useLocation, Routes, Route } from 'react-router-dom';
 import Splash from './pages/Splash';
 import InvitationCode from './pages/InvitationCode';
 import Auth from './pages/Auth';
@@ -23,20 +23,31 @@ import Hashtags from './pages/User/Hashtags';
 function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const location = useLocation();
-  const showUploadOverlay = location.pathname === '/upload';
-  const navigate = useNavigate();
 
-  // BottomNavBarを非表示にするパスのリスト
   const hideNavBarPaths = ['/auth', '/verify-email', '/invite'];
-  const shouldShowNavBar = !hideNavBarPaths.some(path => location.pathname.startsWith(path));
+  const shouldShowNavBar = !hideNavBarPaths.some(path =>
+    location.pathname.startsWith(path)
+  );
 
-  const openUploadOverlay = () => {
-    navigate('/upload');
-  };
+  useEffect(() => {
+    const saveLastActiveTime = () => {
+      localStorage.setItem('lastActiveAt', Date.now().toString());
+    };
 
-  const closeUploadOverlay = () => {
-    navigate(-1);
-  };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        saveLastActiveTime();
+      }
+    };
+
+    window.addEventListener('beforeunload', saveLastActiveTime);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', saveLastActiveTime);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   return (
     <div className="relative min-h-screen">
@@ -61,23 +72,20 @@ function App() {
         </Route>
       </Routes>
 
-      {/* upload overlay */}
       <UploadOverlay
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
       />
 
-      {/* nav bar - 特定のページでは非表示 */}
       {shouldShowNavBar && (
-        <BottomNavBar
-          onUploadClick={() => setIsUploadOpen(true)}
-        />
+        <BottomNavBar onUploadClick={() => setIsUploadOpen(true)} />
       )}
     </div>
   );
 }
 
 export default function AppWrapper() {
+
   return (
     <Router>
       <AuthProvider>

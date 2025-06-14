@@ -1,19 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { auth } from '../../firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import { auth } from '../../firebase';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
+import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
 
-export default function ChangePassword() {
-    const navigate = useNavigate();
+export default function ChangePassword({ onClose }) {
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
     const handleChangePassword = async () => {
-
         if (!newPassword) {
             setError('Please enter a new password.');
             return;
@@ -23,27 +23,27 @@ export default function ChangePassword() {
             return;
         }
 
-        setIsLoading(true);
+        setLoading(true);
         setError('');
         setSuccessMessage('');
 
         try {
-            // verfiy with old password
             const user = auth.currentUser;
             const credential = EmailAuthProvider.credential(user.email, oldPassword);
             await reauthenticateWithCredential(user, credential);
-
-            // update password
             await updatePassword(user, newPassword);
             setSuccessMessage('Password updated successfully!');
+            setOldPassword('');
+            setNewPassword('');
+            setNewPasswordConfirm('');
         } catch (error) {
             if (error.code === 'auth/invalid-credential') {
                 setError('Old password is incorrect.');
             } else {
                 setError(error.message || 'Failed to update password.');
-            }        
+            }
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
@@ -51,65 +51,54 @@ export default function ChangePassword() {
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5">
 
             {/* back */}
-            <button onClick={() => navigate(-1)} className="absolute top-4 left-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
-                    <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
-                </svg>
+            <button onClick={onClose} className="absolute top-6 left-6">
+                <ArrowLeftCircleIcon className="w-8 h-8 text-current" />
             </button>
 
-            <h1 className="text-2xl font-semibold">Change Password</h1>
+            <h2 className="text-xl font-semibold mb-6">Change Password</h2>
 
             <div className="mt-10 px-6 py-8 w-full max-w-sm flex flex-col gap-6">
-                {/* old password */}
-                <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">Old Password</label>
-                    <input
-                        type="password"
-                        value={oldPassword}
-                        onChange={(e) => setOldPassword(e.target.value)}
-                        className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
-                    />
-                </div>
+                <FormInput
+                    label="Old Password"
+                    id="old-password"
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                    disabled={loading}
+                />
+                <FormInput
+                    label="New Password"
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                />
+                <FormInput
+                    label="Confirm New Password"
+                    id="confirm-password"
+                    type="password"
+                    value={newPasswordConfirm}
+                    onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                    required
+                    disabled={loading}
+                />
 
-                {/* new password */}
-                <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">New Password</label>
-                    <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
-                    />
-                </div>
-
-                {/* new password confirm*/}
-                <div className="flex flex-col relative bg-white rounded-lg px-4 py-3 border border-[#0A4A6E]">
-                    <label className="absolute left-3 top-2 text-xs text-[#0A4A6E] font-medium pointer-events-none">New Password Confirm</label>
-                    <input
-                        type="password"
-                        value={newPasswordConfirm}
-                        onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                        className="pt-4 bg-transparent outline-none text-[#0A4A6E]"
-                    />
-                </div>
-
-                {/* change button */}
-                <button
+                <FormButton
+                    type="button"
                     onClick={handleChangePassword}
-                    disabled={isLoading}
-                    className={`py-2 px-4 mt-3 rounded-lg font-medium text-center transition-colors text-white ${isLoading ? 'bg-[#0A4A6E]/50' : 'bg-[#0A4A6E]'}`}
+                    loading={loading}
+                    loadingText="Updating..."
                 >
-                    {isLoading ? 'Updating...' : 'Update Password'}
-                </button>
+                    Update Password
+                </FormButton>
 
-                {/* errors */}
                 {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
-
-                {/* success message */}
                 {successMessage && (
-                    <div className="max-w-xs mt-4 p-3 text-[#0A4A6E] text-sm font-medium space-y-1">
-                        {successMessage}
-                    </div>
+                    <p className="text-[#0A4A6E] text-sm font-medium">{successMessage}</p>
                 )}
             </div>
         </div>

@@ -1,48 +1,45 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../firebase';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import SplashAnimation from './SplashAnimation';
+
+const auto_signout_ms = 3 * 60 * 1000;
 
 export default function Splash() {
     const navigate = useNavigate();
     const mountedRef = useRef(true);
 
     useEffect(() => {
-        console.log('Splash component mounted');
-        console.log('Current user:', auth.currentUser);
-        console.log('invitationVerified:', localStorage.getItem('invitationVerified'));
+        const lastActiveAt = parseInt(localStorage.getItem('lastActiveAt'), 10);
 
-        const handleNavigation = () => {
-            if (!mountedRef.current) return;
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            const now = Date.now();
 
+            console.log('lastActiveAt:', new Date(lastActiveAt).toLocaleTimeString());
+
+            if (user && lastActiveAt && now - lastActiveAt > auto_signout_ms) {
+                await signOut(auth);
+                navigate('/auth', { replace: true });
+                return;
+            }
+            
             const hasInvitation = localStorage.getItem('invitationVerified');
             const invitationVerified = hasInvitation === 'true';
+            if (!mountedRef.current) return;
 
-            console.log('Navigation check:');
-            console.log('Current user:', auth.currentUser);
-            console.log('invitationVerified:', hasInvitation);
-            console.log('invitationVerified boolean:', invitationVerified);
-
-            if (auth.currentUser) {
-                console.log('Navigating to /home');
+            if (user) {
                 navigate('/home', { replace: true });
-            } else if (hasInvitation === null || !invitationVerified) {
-                console.log('Navigating to /invite');
+            } else if (!invitationVerified) {
                 navigate('/invite', { replace: true });
             } else {
-                console.log('Navigating to /auth');
                 navigate('/auth', { replace: true });
             }
-        };
+        });
 
-        // 2秒後にナビゲーションを実行
-        const timer = setTimeout(handleNavigation, 2000);
-
-        // クリーンアップ関数
         return () => {
-            console.log('Cleaning up Splash component');
             mountedRef.current = false;
-            clearTimeout(timer);
+            unsubscribe();
         };
     }, [navigate]);
 
