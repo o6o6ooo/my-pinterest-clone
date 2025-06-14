@@ -1,4 +1,3 @@
-// ChangeEmailContent.js
 import { useState, useEffect } from 'react';
 import { updateEmail, getAuth } from 'firebase/auth';
 import { auth, db } from '../../firebase';
