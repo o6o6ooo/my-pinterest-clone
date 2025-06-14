@@ -1,14 +1,14 @@
 export default function Loading() {
 
     return (
-        <div className="relative flex justify-center items-center h-[150px] w-[150px] bg-transparent">
+        <div className="relative flex justify-center items-center h-screen bg-transparent">
             <img
-                src="/logobase.png"
+                src="/logobase-trasparent.png"
                 alt="logo"
                 className="w-20 h-20 z-10"
             />
             <div
-                className="absolute top-1/2 left-1/2 w-[80px] h-[80px] animate-orbit -translate-x-1/2 -translate-y-1/2"
+                className="absolute top-48% left-35% w-[50px] h-[50px] animate-orbit -translate-x-1/2 -translate-y-1/2"
                 style={{ transformOrigin: '50% 50%' }}
             >
                 <div
