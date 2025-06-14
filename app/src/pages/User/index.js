@@ -9,6 +9,7 @@ import ChangeEmail from './ChangeEmail';
 import ChangePassword from './ChangePassword';
 import CreateGroup from './CreateGroup';
 import EditGroup from './EditGroup';
+import Hashtags from './Hashtags';
 import SlideOver from '../../components/SlideOver';
 
 export default function UserSettings() {
@@ -22,6 +23,7 @@ export default function UserSettings() {
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [showCreateGroup, setShowCreateGroup] = useState(false);
     const [showEditGroup, setShowEditGroup] = useState(false);
+    const [showHashtags, setShowHashtags] = useState(false);
 
     useEffect(() => {
         const currentUser = auth.currentUser;
@@ -109,10 +111,13 @@ export default function UserSettings() {
                 </SlideOver>
 
                 {/* hashtags */}
-                <div onClick={() => navigate('/user/hashtags')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => setShowHashtags(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Hashtags</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                 </div>
+                <SlideOver open={showHashtags} onClose={() => setShowHashtags(false)}>
+                    <Hashtags onClose={() => setShowHashtags(false)} />
+                </SlideOver>
 
                 {/* sign out */}
                 <div className="flex justify-between items-center py-4 cursor-pointer text-lg" onClick={handleSignOut}>
