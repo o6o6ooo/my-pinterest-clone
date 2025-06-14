@@ -6,6 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { PencilIcon } from '@heroicons/react/24/solid';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import ChangeEmail from './ChangeEmail';
+import ChangePassword from './ChangePassword';
 import SlideOver from '../../components/SlideOver';
 
 export default function UserSettings() {
@@ -16,6 +17,7 @@ export default function UserSettings() {
     const [bgColour, setbgColour] = useState('');
     const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
     const [showChangeEmail, setShowChangeEmail] = useState(false);
+    const [showChangePassword, setShowChangePassword] = useState(false);
 
     useEffect(() => {
         const currentUser = auth.currentUser;
@@ -76,10 +78,13 @@ export default function UserSettings() {
                 </SlideOver>
 
                 {/* password */}
-                <div onClick={() => navigate('/user/change-password')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
+                <div onClick={() => setShowChangePassword(true)} className="flex justify-between items-center py-4 cursor-pointer text-lg">
                     <span>Password</span>
                     <ChevronRightIcon className="w-6 h-6 text-[#0A4A6E]" />
                 </div>
+                <SlideOver open={showChangePassword} onClose={() => setShowChangePassword(false)}>
+                    <ChangePassword onClose={() => setShowChangePassword(false)} />
+                </SlideOver>
 
                 {/* your groups */}
                 <div onClick={() => navigate('/user/edit-group')} className="flex justify-between items-center py-4 cursor-pointer text-lg">
