@@ -42,3 +42,6 @@ This ensures that:
 
 ### 15 June 2025
 - added slide overs in user dashboard
+
+### 18 June 2025
+- enabled to upload multiple photos
