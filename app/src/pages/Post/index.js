@@ -7,11 +7,14 @@ import FormInput from '../../components/FormInput';
 import FormButton from '../../components/FormButton';
 import FormDropdown from '../../components/FormDropdown';
 import { XMarkIcon } from '@heroicons/react/24/solid';
+import imageCompression from 'browser-image-compression';
+import heic2any from 'heic2any';
 
 export default function Post() {
     const location = useLocation();
     const navigate = useNavigate();
     const [files, setFiles] = useState(location.state?.files || []);
+    const [previewUrls, setPreviewUrls] = useState([]);
     const [showFullScreen, setShowFullScreen] = useState(false);
     const [year, setYear] = useState('');
     const [tagInput, setTagInput] = useState('');
@@ -19,8 +22,8 @@ export default function Post() {
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [userGroups, setUserGroups] = useState([]);
     const [errors, setErrors] = useState([]);
-    const currentYear = new Date().getFullYear();
     const [loading, setLoading] = useState(false);
+    const currentYear = new Date().getFullYear();
 
     const handleThumbnailClick = () => {
         setShowFullScreen(true);
@@ -45,9 +48,14 @@ export default function Post() {
 
     // remove photos with x button
     const handleRemoveFile = (indexToRemove) => {
+        // 解放するURLを忘れずに
+        URL.revokeObjectURL(previewUrls[indexToRemove]);
         const newFiles = [...files];
+        const newPreviews = [...previewUrls];
         newFiles.splice(indexToRemove, 1);
+        newPreviews.splice(indexToRemove, 1);
         setFiles(newFiles);
+        setPreviewUrls(newPreviews);
     };
 
     // set year
@@ -71,6 +79,12 @@ export default function Post() {
         setErrors(newErrors);
         if (newErrors.length > 0) return;
 
+        const options = {
+            maxWidthOrHeight: 1920,
+            maxSizeMB: 1,
+            useWebWorker: true,
+        };
+
         try {
             setLoading(true);
             const idToken = await auth.currentUser.getIdToken();
@@ -82,8 +96,11 @@ export default function Post() {
 
             // Loop through each file
             for (const file of files) {
+
+                const compressedFile = await imageCompression(file, options);
+
                 const formData = new FormData();
-                formData.append('image', file);
+                formData.append('image', compressedFile);
 
                 const response = await fetch(UPLOAD_URL, {
                     method: 'POST',
@@ -104,6 +121,7 @@ export default function Post() {
                     posted_by: userId,
                     year: year || null,
                     hashtags: tags.map(tag => tag.toLowerCase()),
+                    file_size: Math.round(compressedFile.size / 1024 / 1024 * 100) / 100, // size in MB
                     created_at: serverTimestamp(),
                 };
 
@@ -151,14 +169,56 @@ export default function Post() {
         }
     }, [files, navigate]);
 
+    useEffect(() => {
+        const newUrls = files.map(file => URL.createObjectURL(file));
+        setPreviewUrls(newUrls);
+
+        return () => {
+            newUrls.forEach(url => URL.revokeObjectURL(url));
+        };
+    }, [files]);
+
+    useEffect(() => {
+        const convertHeicFiles = async () => {
+            if (!files.length) return;
+
+            const converted = await Promise.all(
+                files.map(async (file) => {
+                    if (file.type === 'image/heic' || file.name?.toLowerCase().endsWith('.heic')) {
+                        try {
+                            const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+                            return new File([convertedBlob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+                        } catch (error) {
+                            console.error('HEIC conversion failed:', error);
+                            return null;
+                        }
+                    }
+                    return file; // 変換不要
+                })
+            );
+
+            // nullを除外してセット
+            const validFiles = converted.filter(f => f !== null);
+            if (validFiles.length > 0) {
+                setFiles(validFiles);
+            } else {
+                alert('選択されたファイルはすべて無効でした。');
+                navigate(-1);
+            }
+        };
+
+        convertHeicFiles();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 relative">
-            {/* thummbnail preview */}
+            {/* thumbnail preview */}
             <div className="relative w-32 h-32 mt-4 cursor-pointer" onClick={handleThumbnailClick}>
-                {files.slice(0, 5).map((file, index) => (
+                {previewUrls.slice(0, 5).map((url, index) => (
                     <img
                         key={index}
-                        src={URL.createObjectURL(file)}
+                        src={url}
                         alt="preview"
                         className="w-20 h-20 object-cover rounded shadow absolute"
                         style={{
@@ -259,10 +319,10 @@ export default function Post() {
                     onClick={() => setShowFullScreen(false)}
                 >
                     <div className="flex gap-4 overflow-x-auto">
-                        {files.map((file, index) => (
+                        {previewUrls.map((url, index) => (
                             <div key={index} className="relative">
                                 <img
-                                    src={URL.createObjectURL(file)}
+                                    src={url}
                                     alt="full preview"
                                     className="max-h-[80vh] max-w-[80vw] rounded-xl"
                                 />
