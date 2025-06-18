@@ -10,7 +10,9 @@ import ChangePassword from './ChangePassword';
 import CreateGroup from './CreateGroup';
 import EditGroup from './EditGroup';
 import Hashtags from './Hashtags';
+import EditProfileIcon from './EditProfileIcon';
 import SlideOver from '../../components/SlideOver';
+import PopupModal from '../../components/PopupModal';
 
 export default function UserSettings() {
     const navigate = useNavigate();
@@ -24,6 +26,7 @@ export default function UserSettings() {
     const [showCreateGroup, setShowCreateGroup] = useState(false);
     const [showEditGroup, setShowEditGroup] = useState(false);
     const [showHashtags, setShowHashtags] = useState(false);
+    const [showEditProfileIcon, setShowEditProfileIcon] = useState(false);
 
     useEffect(() => {
         const currentUser = auth.currentUser;
@@ -62,9 +65,15 @@ export default function UserSettings() {
                 <span className="text-5xl flex items-center justify-center h-full">{icon}</span>
 
                 {/* pen icon */}
-                <button onClick={() => navigate('/user/edit-profile-icon')} className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-200">
+                <button
+                    onClick={() => setShowEditProfileIcon(true)}
+                    className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-200"
+                >
                     <PencilIcon className="w-4 h-4 text-current" />
                 </button>
+                <PopupModal open={showEditProfileIcon} onClose={() => setShowEditProfileIcon(false)}>
+                    <EditProfileIcon onClose={() => setShowEditProfileIcon(false)} />
+                </PopupModal>
             </div>
 
             {/* user name */}
@@ -129,20 +138,17 @@ export default function UserSettings() {
                 <div className="flex justify-between items-center py-4 cursor-pointer text-sm" onClick={() => setIsPrivacyPolicyOpen(true)}>
                     <span>Privacy Policy</span>
                 </div>
-                {isPrivacyPolicyOpen && (
-                    <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center" onClick={() => setIsPrivacyPolicyOpen(false)}>
-                        <div className="bg-white rounded-xl shadow-lg p-4 w-70 max-h-[80vh] overflow-y-auto relative items-center border border-[#0A4A6E] mx-8" onClick={() => setIsPrivacyPolicyOpen(false)}>
-                            <div className="flex flex-col gap-2 text-sm">
-                                <h2 className="font-bold">Privacy & Security</h2>
-                                <span>- Uploaded images cannot be accessed publicly</span>
-                                <span>- Only signed-in users can upload or view photos
-                                </span>
-                                <span>- All photos data is protected from unauthorized access</span>
-                                <span>- Image URLs are only generated after login and expire after 1 hour</span>
-                            </div>
+                <PopupModal open={isPrivacyPolicyOpen} onClose={() => setIsPrivacyPolicyOpen(false)}>
+                    <div className="bg-white rounded-xl shadow-lg p-4 w-70 max-h-[80vh] overflow-y-auto relative items-center border border-[#0A4A6E] mx-8" onClick={() => setIsPrivacyPolicyOpen(false)}>
+                        <div className="flex flex-col gap-2 text-sm">
+                            <h2 className="font-bold">Privacy & Security</h2>
+                            <span>- Uploaded images cannot be accessed publicly</span>
+                            <span>- Only signed-in users can upload or view photos</span>
+                            <span>- All photos data is protected from unauthorized access</span>
+                            <span>- Image URLs are only generated after login and expire after 1 hour</span>
                         </div>
                     </div>
-                )}
+                </PopupModal>
             </div>
         </div>
     );
