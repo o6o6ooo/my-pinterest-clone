@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { db, auth } from '../../firebase';
-import { collection, addDoc, serverTimestamp, getDocs, setDoc, doc } from 'firebase/firestore'; 
+import { collection, addDoc, serverTimestamp, getDocs, setDoc, doc } from 'firebase/firestore';
 import cleanInput from '../../utils/cleanInput';
 import FormInput from '../../components/FormInput';
 import FormButton from '../../components/FormButton';
@@ -11,7 +11,7 @@ import { XMarkIcon } from '@heroicons/react/24/solid';
 export default function Post() {
     const location = useLocation();
     const navigate = useNavigate();
-    const [files, setFiles] = useState(location.state?.files ||[]);
+    const [files, setFiles] = useState(location.state?.files || []);
     const [showFullScreen, setShowFullScreen] = useState(false);
     const [year, setYear] = useState('');
     const [tagInput, setTagInput] = useState('');
@@ -37,7 +37,7 @@ export default function Post() {
             setTagInput('');
         }
     };
-    
+
     // delete hashtags
     const handleRemoveTag = (index) => {
         setTags(tags.filter((_, i) => i !== index));
@@ -53,8 +53,8 @@ export default function Post() {
     // set year
     const handleYearChange = (e) => {
         setYear(e.target.value);
-      };
-    
+    };
+
     // post
     const handleUpload = async () => {
 
@@ -74,31 +74,30 @@ export default function Post() {
         try {
             setLoading(true);
             const idToken = await auth.currentUser.getIdToken();
-
-            // upload to Cloudinary
-            const formData = new FormData();
-            formData.append('image', files[0]);
-
             const UPLOAD_URL =
                 process.env.NODE_ENV === 'development'
                     ? 'http://localhost:5001/api/upload'
                     : 'https://kuusi.onrender.com/api/upload';
-
-            const response = await fetch(UPLOAD_URL, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${idToken}`
-                },
-                body: formData,
-            });
-
-            if (!response.ok) throw new Error('Upload failed.');
-            const data = await response.json();
-            console.log('Upload response data:', data);
             const userId = auth.currentUser.uid;
 
-            if (data.public_id) {
-                // save photo in Firestore
+            // Loop through each file
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append('image', file);
+
+                const response = await fetch(UPLOAD_URL, {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) throw new Error('Upload failed');
+                const data = await response.json();
+
+                if (!data.public_id) throw new Error('Cloudinary did not return a public_id');
+
                 const photoData = {
                     photo_url: data.public_id,
                     group_id: selectedGroup.id,
@@ -109,28 +108,26 @@ export default function Post() {
                 };
 
                 await addDoc(collection(db, 'photos'), photoData);
-
-                // save hashtags in Firestore
-                await Promise.all(tags.map(async (tag) => {
-                    const docId = `${userId}_${tag.toLowerCase()}_${selectedGroup.id}`;
-                    const settingRef = doc(db, 'user_hashtag_settings', docId);
-                    await setDoc(settingRef, {
-                        user_id: userId,
-                        hashtag: tag.toLowerCase(),
-                        group_id: selectedGroup.id,
-                        show_in_feed: true,
-                        updated_at: new Date(),
-                    }, { merge: true });
-                }));
-
-                alert('Upload and save complete!');
-                navigate('/home');
-            } else {
-                alert('Cloudinary upload returned no URL.');
             }
+
+            // Save hashtag settings (once per tag, not per file)
+            await Promise.all(tags.map(async (tag) => {
+                const docId = `${userId}_${tag.toLowerCase()}_${selectedGroup.id}`;
+                const settingRef = doc(db, 'user_hashtag_settings', docId);
+                await setDoc(settingRef, {
+                    user_id: userId,
+                    hashtag: tag.toLowerCase(),
+                    group_id: selectedGroup.id,
+                    show_in_feed: true,
+                    updated_at: new Date(),
+                }, { merge: true });
+            }));
+
+            alert('Upload and save complete!');
+            navigate('/home');
         } catch (error) {
             console.error('Upload error:', error);
-            alert('Failed to upload.');
+            alert('Failed to upload one or more files.');
         } finally {
             setLoading(false);
         }
