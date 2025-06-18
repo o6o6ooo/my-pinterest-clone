@@ -34,3 +34,11 @@ This ensures that:
 - improved upload overlay
 - added an overlay showing group members
 - added an overlay for privacy and security
+
+### 13 June 2025
+- added who posted on photo preview
+- added animation
+- added loading in home feed
+
+### 15 June 2025
+- added slide overs in user dashboard
