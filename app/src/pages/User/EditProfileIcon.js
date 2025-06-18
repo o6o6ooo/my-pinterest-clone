@@ -5,15 +5,15 @@ import { auth, db } from '../../firebase';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
-import { PencilIcon } from '@heroicons/react/24/solid';
+import FormButton from '../../components/FormButton';
 
-export default function EditIcon() {
+export default function EditIcon({ onClose }) {
     const navigate = useNavigate();
     const [icon, setIcon] = useState('');
     const [bgColour, setBgColour] = useState('');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const colours = ['#A5C3DE', '#F7C59F', '#DCD6F7', '#F6A6B2', '#C8E3D4', '#FFD6A5', '#D9E5FF', '#E6E6FA', '#FBE7A1', '#FFB3C1', '#FFF9B1', '#9AD4EB', '#A5D8F3', '#C7E9F1', '#FFB6B9', '#FADADD'];
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // get icon and background
     useEffect(() => {
@@ -33,7 +33,7 @@ export default function EditIcon() {
 
     const handleSave = async () => {
         if (!auth.currentUser) return;
-        setIsLoading(true);
+        setLoading(true);
         try {
             await updateDoc(doc(db, 'users', auth.currentUser.uid), {
                 icon: icon,
@@ -45,39 +45,32 @@ export default function EditIcon() {
             console.error('Error updating icon:', error);
             alert('Failed to update.');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-5 relative">
+        <div className="bg-white rounded-xl shadow-lg p-4 w-70 max-h-[80vh] overflow-y-auto relative items-center border border-[#0A4A6E] mx-8 flex flex-col justify-center">
 
             {/* back */}
-            <button onClick={() => navigate(-1)} className="absolute top-6 left-6">
+            <button onClick={onClose} className="absolute top-6 left-6">
                 <ArrowLeftCircleIcon className="w-8 h-8 text-current" />
             </button>
-            <h1 className="text-2xl font-semibold">Edit Icon</h1>
 
             {/* current icon */}
-            <div className="relative mt-8">
+            <div className="relative mt-8 flex justify-center">
                 <div
-                    className="w-24 h-24 rounded-full flex items-center justify-center text-4xl border-2 border-white shadow-md"
+                    className="w-20 h-20 rounded-full flex items-center justify-center text-4xl border-2 border-white shadow-md"
                     style={{ backgroundColor: bgColour }}
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 >
                     {icon}
                 </div>
-                {/* pen icon */}
-                <button
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="absolute bottom-0 right-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-200"
-                >
-                    <PencilIcon className="w-4 h-4 text-current" />
-                </button>
             </div>
 
-            {/* emoji oicker */}
+            {/* emoji picker */}
             {showEmojiPicker && (
-                <div className="mt-4">
+                <div>
                     <Picker
                         data={data}
                         onEmojiSelect={(emoji) => {
@@ -89,7 +82,7 @@ export default function EditIcon() {
             )}
 
             {/* choose background */}
-            <div className="flex flex-wrap justify-center gap-3 mt-6 px-10 py-8">
+            <div className="flex flex-wrap justify-center gap-3 py-8">
                 {colours.map((colour, idx) => (
                     <div
                         key={idx}
@@ -101,13 +94,15 @@ export default function EditIcon() {
             </div>
 
             {/* save */}
-            <button
+            <FormButton
+                loading={loading}
+                type="button"
                 onClick={handleSave}
-                disabled={isLoading}
-                className="py-2 px-4 mt-8 rounded-lg font-medium text-center transition-colors text-white bg-[#0A4A6E]"
+                loadingText="Saving..."
+                fullWidth={false}
             >
-                {isLoading ? 'Saving...' : 'Save'}
-            </button>
+                Save
+            </FormButton>
         </div>
     );
 }
