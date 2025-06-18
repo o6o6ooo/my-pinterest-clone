@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { updateEmail, getAuth } from 'firebase/auth';
+import { getAuth, EmailAuthProvider, reauthenticateWithCredential, verifyBeforeUpdateEmail } from 'firebase/auth';
 import { auth, db } from '../../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import cleanInput from '../../utils/cleanInput';
@@ -10,6 +10,7 @@ import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
 export default function ChangeEmail({ onClose }) {
     const [oldEmail, setOldEmail] = useState('');
     const [newEmail, setNewEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
@@ -25,23 +26,42 @@ export default function ChangeEmail({ onClose }) {
         setError('');
         setSuccessMessage('');
 
-        if (!newEmail) {
-            setError('Please enter a new email.');
+        if (!newEmail || !password) {
+            setError('Please enter your new email and current password.');
             return;
         }
 
         try {
             setLoading(true);
-            await updateEmail(auth.currentUser, newEmail);
-            const userDocRef = doc(db, 'users', auth.currentUser.uid);
-            await updateDoc(userDocRef, {
-                email: newEmail,
-                updated_at: new Date(),
-            });
-            setSuccessMessage('Email updated successfully!');
+            const user = auth.currentUser;
+            const credential = EmailAuthProvider.credential(user.email, password);
+            await reauthenticateWithCredential(user, credential);
+            await verifyBeforeUpdateEmail(auth.currentUser, newEmail);
+            setSuccessMessage(`Verification email sent to ${newEmail}. Please check your inbox.`);
+
+            const interval = setInterval(async () => {
+                await auth.currentUser.reload();
+
+                if (auth.currentUser.emailVerified) {
+                    clearInterval(interval);
+
+                    try {
+                        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+                        await updateDoc(userDocRef, {
+                            email: auth.currentUser.email,
+                            updated_at: new Date(),
+                        });
+                        setSuccessMessage('Email verified and updated successfully!');
+                    } catch (firestoreError) {
+                        console.error('Firestore update error:', firestoreError);
+                        setError('Email verified, but failed to update the database.');
+                    }
+                }
+            }, 3000);
+
         } catch (err) {
-            console.error(err);
-            setError('Failed to update email.');
+            console.error('Email update error:', err);
+            setError('Failed to send verification email.');
         } finally {
             setLoading(false);
         }
@@ -73,6 +93,16 @@ export default function ChangeEmail({ onClose }) {
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(cleanInput(e.target.value, { toLowerCase: false }))}
+                    required
+                    disabled={loading}
+                />
+                <FormInput
+                    label="Password"
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
                     required
                     disabled={loading}
                 />
