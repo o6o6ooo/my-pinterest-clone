@@ -1,17 +1,20 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { db, auth } from '../../firebase';
-import { collection, addDoc, serverTimestamp, getDocs, setDoc, doc } from 'firebase/firestore'; 
+import { collection, addDoc, serverTimestamp, getDocs, setDoc, doc } from 'firebase/firestore';
 import cleanInput from '../../utils/cleanInput';
 import FormInput from '../../components/FormInput';
 import FormButton from '../../components/FormButton';
 import FormDropdown from '../../components/FormDropdown';
 import { XMarkIcon } from '@heroicons/react/24/solid';
+import imageCompression from 'browser-image-compression';
+import heic2any from 'heic2any';
 
 export default function Post() {
     const location = useLocation();
     const navigate = useNavigate();
-    const [files, setFiles] = useState(location.state?.files ||[]);
+    const [files, setFiles] = useState(location.state?.files || []);
+    const [previewUrls, setPreviewUrls] = useState([]);
     const [showFullScreen, setShowFullScreen] = useState(false);
     const [year, setYear] = useState('');
     const [tagInput, setTagInput] = useState('');
@@ -19,8 +22,8 @@ export default function Post() {
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [userGroups, setUserGroups] = useState([]);
     const [errors, setErrors] = useState([]);
-    const currentYear = new Date().getFullYear();
     const [loading, setLoading] = useState(false);
+    const currentYear = new Date().getFullYear();
 
     const handleThumbnailClick = () => {
         setShowFullScreen(true);
@@ -37,7 +40,7 @@ export default function Post() {
             setTagInput('');
         }
     };
-    
+
     // delete hashtags
     const handleRemoveTag = (index) => {
         setTags(tags.filter((_, i) => i !== index));
@@ -45,16 +48,21 @@ export default function Post() {
 
     // remove photos with x button
     const handleRemoveFile = (indexToRemove) => {
+        // 解放するURLを忘れずに
+        URL.revokeObjectURL(previewUrls[indexToRemove]);
         const newFiles = [...files];
+        const newPreviews = [...previewUrls];
         newFiles.splice(indexToRemove, 1);
+        newPreviews.splice(indexToRemove, 1);
         setFiles(newFiles);
+        setPreviewUrls(newPreviews);
     };
 
     // set year
     const handleYearChange = (e) => {
         setYear(e.target.value);
-      };
-    
+    };
+
     // post
     const handleUpload = async () => {
 
@@ -71,66 +79,73 @@ export default function Post() {
         setErrors(newErrors);
         if (newErrors.length > 0) return;
 
+        const options = {
+            maxWidthOrHeight: 1920,
+            maxSizeMB: 1,
+            useWebWorker: true,
+        };
+
         try {
             setLoading(true);
             const idToken = await auth.currentUser.getIdToken();
-
-            // upload to Cloudinary
-            const formData = new FormData();
-            formData.append('image', files[0]);
-
             const UPLOAD_URL =
                 process.env.NODE_ENV === 'development'
                     ? 'http://localhost:5001/api/upload'
                     : 'https://kuusi.onrender.com/api/upload';
-
-            const response = await fetch(UPLOAD_URL, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${idToken}`
-                },
-                body: formData,
-            });
-
-            if (!response.ok) throw new Error('Upload failed.');
-            const data = await response.json();
-            console.log('Upload response data:', data);
             const userId = auth.currentUser.uid;
 
-            if (data.public_id) {
-                // save photo in Firestore
+            // Loop through each file
+            for (const file of files) {
+
+                const compressedFile = await imageCompression(file, options);
+
+                const formData = new FormData();
+                formData.append('image', compressedFile);
+
+                const response = await fetch(UPLOAD_URL, {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${idToken}`,
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) throw new Error('Upload failed');
+                const data = await response.json();
+
+                if (!data.public_id) throw new Error('Cloudinary did not return a public_id');
+
                 const photoData = {
                     photo_url: data.public_id,
                     group_id: selectedGroup.id,
                     posted_by: userId,
                     year: year || null,
                     hashtags: tags.map(tag => tag.toLowerCase()),
+                    file_size: Math.round(compressedFile.size / 1024 / 1024 * 100) / 100, // size in MB
                     created_at: serverTimestamp(),
                 };
 
                 await addDoc(collection(db, 'photos'), photoData);
-
-                // save hashtags in Firestore
-                await Promise.all(tags.map(async (tag) => {
-                    const docId = `${userId}_${tag.toLowerCase()}_${selectedGroup.id}`;
-                    const settingRef = doc(db, 'user_hashtag_settings', docId);
-                    await setDoc(settingRef, {
-                        user_id: userId,
-                        hashtag: tag.toLowerCase(),
-                        group_id: selectedGroup.id,
-                        show_in_feed: true,
-                        updated_at: new Date(),
-                    }, { merge: true });
-                }));
-
-                alert('Upload and save complete!');
-                navigate('/home');
-            } else {
-                alert('Cloudinary upload returned no URL.');
             }
+
+            // Save hashtag settings (once per tag, not per file)
+            await Promise.all(tags.map(async (tag) => {
+                const docId = `${userId}_${tag.toLowerCase()}_${selectedGroup.id}`;
+                const settingRef = doc(db, 'user_hashtag_settings', docId);
+                await setDoc(settingRef, {
+                    user_id: userId,
+                    hashtag: tag.toLowerCase(),
+                    group_id: selectedGroup.id,
+                    show_in_feed: true,
+                    updated_at: new Date(),
+                }, { merge: true });
+            }));
+
+            alert('Upload and save complete!');
+            navigate('/home');
         } catch (error) {
             console.error('Upload error:', error);
-            alert('Failed to upload.');
+            alert('Failed to upload one or more files.');
         } finally {
             setLoading(false);
         }
@@ -154,14 +169,56 @@ export default function Post() {
         }
     }, [files, navigate]);
 
+    useEffect(() => {
+        const newUrls = files.map(file => URL.createObjectURL(file));
+        setPreviewUrls(newUrls);
+
+        return () => {
+            newUrls.forEach(url => URL.revokeObjectURL(url));
+        };
+    }, [files]);
+
+    useEffect(() => {
+        const convertHeicFiles = async () => {
+            if (!files.length) return;
+
+            const converted = await Promise.all(
+                files.map(async (file) => {
+                    if (file.type === 'image/heic' || file.name?.toLowerCase().endsWith('.heic')) {
+                        try {
+                            const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+                            return new File([convertedBlob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+                        } catch (error) {
+                            console.error('HEIC conversion failed:', error);
+                            return null;
+                        }
+                    }
+                    return file; // 変換不要
+                })
+            );
+
+            // nullを除外してセット
+            const validFiles = converted.filter(f => f !== null);
+            if (validFiles.length > 0) {
+                setFiles(validFiles);
+            } else {
+                alert('選択されたファイルはすべて無効でした。');
+                navigate(-1);
+            }
+        };
+
+        convertHeicFiles();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 relative">
-            {/* thummbnail preview */}
+            {/* thumbnail preview */}
             <div className="relative w-32 h-32 mt-4 cursor-pointer" onClick={handleThumbnailClick}>
-                {files.slice(0, 5).map((file, index) => (
+                {previewUrls.slice(0, 5).map((url, index) => (
                     <img
                         key={index}
-                        src={URL.createObjectURL(file)}
+                        src={url}
                         alt="preview"
                         className="w-20 h-20 object-cover rounded shadow absolute"
                         style={{
@@ -262,10 +319,10 @@ export default function Post() {
                     onClick={() => setShowFullScreen(false)}
                 >
                     <div className="flex gap-4 overflow-x-auto">
-                        {files.map((file, index) => (
+                        {previewUrls.map((url, index) => (
                             <div key={index} className="relative">
                                 <img
-                                    src={URL.createObjectURL(file)}
+                                    src={url}
                                     alt="full preview"
                                     className="max-h-[80vh] max-w-[80vw] rounded-xl"
                                 />
