@@ -1,5 +1,3 @@
-import firebaseMock from '../support/firebase-mock?raw';
-
 describe('Splash Screen and Initial Navigation', () => {
   beforeEach(() => {
     cy.viewport(430, 932);
