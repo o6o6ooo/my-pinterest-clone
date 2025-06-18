@@ -17,4 +17,4 @@
 import './commands'
 
 // Firebaseのモックを読み込み
-import './firebase-mock'
+import './index'
