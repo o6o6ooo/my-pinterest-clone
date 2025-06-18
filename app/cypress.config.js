@@ -6,7 +6,7 @@ module.exports = defineConfig({
     viewportWidth: 430, // iPhone 15 Pro Max width
     viewportHeight: 932, // iPhone 15 Pro Max height
     supportFile: 'cypress/support/e2e.js',
-    specPattern: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
+    specPattern: "cypress/e2e/**/*.js",
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
