@@ -111,9 +111,12 @@ export default function HomeFeed() {
         };
 
         (async () => {
-            await fetchGroups();
-            await fetchPhotos();
-            await fetchUserHashtags();
+            setLoading(true);
+            const [groupData, ,] = await Promise.all([
+                fetchGroups(),
+                fetchPhotos(),
+                fetchUserHashtags()
+            ]);
             setLoading(false);
         })();
     }, []);
