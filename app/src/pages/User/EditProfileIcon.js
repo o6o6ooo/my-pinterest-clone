@@ -71,7 +71,10 @@ export default function EditIcon({ onClose }) {
             {showEmojiPicker && (
                 <div>
                     <Picker
-                        onEmojiClick={(e, emojiObj) => setInput(prev => prev + emojiObj.emoji)}
+                        onEmojiClick={(emojiData, event) => {
+                            setIcon(emojiData.emoji);
+                            setShowEmojiPicker(false);
+                        }}
                         searchPlaceholder="Search emojis..."
                         disableAutoFocusSearch
                     />
