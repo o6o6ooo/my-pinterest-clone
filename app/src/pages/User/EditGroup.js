@@ -127,120 +127,128 @@ export default function EditGroup({ onClose }) {
             </button>
             <h1 className="text-2xl font-semibold">Your groups</h1>
 
-            {/* group swtich button */}
-            <div className="flex flex-wrap gap-3 mt-5 max-w-sm px-6">
-                {groups.map((group, index) => (
-                    <button
-                        key={index}
-                        onClick={() => handleSwitchGroup(index)}
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${index === currentGroupIndex ? 'bg-[#0A4A6E] text-white' : 'bg-white text-[#0A4A6E]'}`}
-                    >
-                        {group.group_name}
-                    </button>
-                ))}
-            </div>
-
-            <div className="px-6 py-8 w-full max-w-sm flex flex-col gap-6">
-                {/* Group ID */}
-                <FormInput
-                    label="Group ID"
-                    id="groupId"
-                    type="text"
-                    value={groupId}
-                    readOnly
-                    disabled
-                    variant="readonly"
-                />
-
-                {/* Group Name */}
-                <FormInput
-                    label="Group name"
-                    id="groupName"
-                    type="text"
-                    value={groupName}
-                    onChange={(e) => setGroupName(cleanInput(e.target.value))}
-                    required
-                    disabled={loading}
-                />
-
-                {/* Group Link */}
-                <FormInput
-                    label="Group link"
-                    type="text"
-                    value={groupLink}
-                    readOnly
-                    disabled
-                    variant="readonly"
-                />
-
-                {/* share */}
-                <button className="ml-2 text-[#0A4A6E] flex items-center" onClick={handleShare}>
-                    <ShareIcon className="w-5 h-5 text-current" />
-                    <span className="ml-3">Share link</span>
-                </button>
-
-                {/* Member icons */}
-                {members.length > 0 && (
-                    <div className="flex items-center justify-center space-x-[-10px]" onClick={() => setIsMemberModalOpen(true)}>
-                        {members.map((member, idx) => (
-                            <div
-                                key={idx}
-                                className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xl border-2 border-white shadow-md"
-                                style={{ backgroundColor: member.colour }}
+            {groups.length === 0 ? (
+                <p className="mt-6 text-center text-[#0A4A6E] text-sm">
+                    You haven't joined any group
+                </p>
+            ) : (
+                <>
+                    {/* group switch buttons */}
+                    <div className="flex flex-wrap gap-3 mt-5 max-w-sm px-6">
+                        {groups.map((group, index) => (
+                            <button
+                                key={index}
+                                onClick={() => handleSwitchGroup(index)}
+                                className={`px-3 py-1 rounded-full text-sm font-medium ${index === currentGroupIndex ? 'bg-[#0A4A6E] text-white' : 'bg-white text-[#0A4A6E]'}`}
                             >
-                                {member.icon}
-                            </div>
+                                {group.group_name}
+                            </button>
                         ))}
                     </div>
-                )}
 
-                {/* Save button */}
-                <FormButton
-                    type="button"
-                    onClick={handleSaveGroup}
-                    loading={loading}
-                    loadingText="Saving..."
-                >
-                    Save
-                </FormButton>
+                    <div className="px-6 py-8 w-full max-w-sm flex flex-col gap-6">
+                        {/* Group ID */}
+                        <FormInput
+                            label="Group ID"
+                            id="groupId"
+                            type="text"
+                            value={groupId}
+                            readOnly
+                            disabled
+                            variant="readonly"
+                        />
 
-                {/* Errors */}
-                {errors.length > 0 && (
-                    <div className="max-w-xs mt-4 p-3 text-red-600 text-sm font-medium space-y-1">
-                        {errors.map((error, i) => (
-                            <p key={i}>{error}</p>
-                        ))}
-                    </div>
-                )}
+                        {/* Group Name */}
+                        <FormInput
+                            label="Group name"
+                            id="groupName"
+                            type="text"
+                            value={groupName}
+                            onChange={(e) => setGroupName(cleanInput(e.target.value))}
+                            required
+                            disabled={loading}
+                        />
 
-                {/* Success */}
-                {successMessage && (
-                    <div className="max-w-xs mt-4 p-3 text-[#0A4A6E] text-sm font-medium">
-                        {successMessage}
-                    </div>
-                )}
+                        {/* Group Link */}
+                        <FormInput
+                            label="Group link"
+                            type="text"
+                            value={groupLink}
+                            readOnly
+                            disabled
+                            variant="readonly"
+                        />
 
-                {/* members */}
-                {isMemberModalOpen && (
-                    <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center" onClick={() => setIsMemberModalOpen(false)}>
-                        <div className="bg-white rounded-xl shadow-lg p-4 w-70 max-h-[80vh] overflow-y-auto relative items-center border border-[#0A4A6E]" onClick={() => setIsMemberModalOpen(false)}>
-                            <div className="flex flex-col gap-4">
+                        {/* share */}
+                        <button className="ml-2 text-[#0A4A6E] flex items-center" onClick={handleShare}>
+                            <ShareIcon className="w-5 h-5 text-current" />
+                            <span className="ml-3">Share link</span>
+                        </button>
+
+                        {/* Member icons */}
+                        {members.length > 0 && (
+                            <div className="flex items-center justify-center space-x-[-10px]" onClick={() => setIsMemberModalOpen(true)}>
                                 {members.map((member, idx) => (
-                                    <div key={idx} className="flex items-center gap-3">
-                                        <div
-                                            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xl border-2 border-white shadow-md"
-                                            style={{ backgroundColor: member.colour }}
-                                        >
-                                            {member.icon}
-                                        </div>
-                                        <span className="text-[#0A4A6E] text-sm font-semibold">{member.name}</span>
+                                    <div
+                                        key={idx}
+                                        className="w-10 h-10 rounded-full flex items-center justify-center text-white text-xl border-2 border-white shadow-md"
+                                        style={{ backgroundColor: member.colour }}
+                                    >
+                                        {member.icon}
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        )}
+
+                        {/* Save button */}
+                        <FormButton
+                            type="button"
+                            onClick={handleSaveGroup}
+                            loading={loading}
+                            loadingText="Saving..."
+                        >
+                            Save
+                        </FormButton>
+
+                        {/* Errors */}
+                        {errors.length > 0 && (
+                            <div className="max-w-xs mt-4 p-3 text-red-600 text-sm font-medium space-y-1">
+                                {errors.map((error, i) => (
+                                    <p key={i}>{error}</p>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Success */}
+                        {successMessage && (
+                            <div className="max-w-xs mt-4 p-3 text-[#0A4A6E] text-sm font-medium">
+                                {successMessage}
+                            </div>
+                        )}
+
+                        {/* members */}
+                        {isMemberModalOpen && (
+                            <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center" onClick={() => setIsMemberModalOpen(false)}>
+                                <div className="bg-white rounded-xl shadow-lg p-4 w-70 max-h-[80vh] overflow-y-auto relative items-center border border-[#0A4A6E]" onClick={() => setIsMemberModalOpen(false)}>
+                                    <div className="flex flex-col gap-4">
+                                        {members.map((member, idx) => (
+                                            <div key={idx} className="flex items-center gap-3">
+                                                <div
+                                                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xl border-2 border-white shadow-md"
+                                                    style={{ backgroundColor: member.colour }}
+                                                >
+                                                    {member.icon}
+                                                </div>
+                                                <span className="text-[#0A4A6E] text-sm font-semibold">{member.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </>
+            )}
         </div>
     );
 }
