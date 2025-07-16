@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updateDoc, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
 import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
 import FormButton from '../../components/FormButton';
+import Picker from "emoji-picker-react";
 
 export default function EditIcon({ onClose }) {
     const navigate = useNavigate();
@@ -72,11 +71,9 @@ export default function EditIcon({ onClose }) {
             {showEmojiPicker && (
                 <div>
                     <Picker
-                        data={data}
-                        onEmojiSelect={(emoji) => {
-                            setIcon(emoji.native);
-                            setShowEmojiPicker(false);
-                        }}
+                        onEmojiClick={(e, emojiObj) => setInput(prev => prev + emojiObj.emoji)}
+                        searchPlaceholder="Search emojis..."
+                        disableAutoFocusSearch
                     />
                 </div>
             )}
