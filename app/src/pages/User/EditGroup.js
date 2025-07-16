@@ -32,7 +32,7 @@ export default function EditGroup({ onClose }) {
             if (userGroups.length > 0) {
                 const firstGroup = userGroups[0];
                 setGroupName(firstGroup.group_name);
-                setGroupId(firstGroup.group_id);
+                setGroupId(firstGroup.id);
                 setGroupLink(firstGroup.group_link);
             }
         };
@@ -69,7 +69,7 @@ export default function EditGroup({ onClose }) {
         const group = groups[index];
         setCurrentGroupIndex(index);
         setGroupName(group.group_name);
-        setGroupId(group.group_id);
+        setGroupId(group.id);
         setGroupLink(group.group_link);
         setErrors([]);
         setSuccessMessage('');
@@ -84,17 +84,12 @@ export default function EditGroup({ onClose }) {
             setErrors(['Group name is required.']);
             return;
         }
-        if (!groupId.trim()) {
-            setErrors(['Group ID is required.']);
-            return;
-        }
 
         setLoading(true);
 
         try {
             const updatedData = {
                 group_name: groupName,
-                group_id: groupId,
                 group_link: groupLink,
             };
 
@@ -152,13 +147,9 @@ export default function EditGroup({ onClose }) {
                     id="groupId"
                     type="text"
                     value={groupId}
-                    onChange={(e) => {
-                        const cleanedId = cleanInput(e.target.value, { toLowerCase: true });
-                        setGroupId(cleanedId);
-                        setGroupLink(`https://kuusi-f06ab.web.app/group/join/${cleanedId}`);
-                    }}
-                    required
-                    disabled={loading}
+                    readOnly
+                    disabled
+                    variant="readonly"
                 />
 
                 {/* Group Name */}
