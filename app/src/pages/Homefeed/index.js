@@ -47,7 +47,6 @@ export default function HomeFeed() {
 
                 const userData = userDoc.data();
                 const groupIds = userData.groups || [];
-                console.log('✅ ユーザーが所属するグループID:', groupIds);
 
                 if (groupIds.length === 0) {
                     setGroups([]);
@@ -65,7 +64,6 @@ export default function HomeFeed() {
 
                 const validGroups = groupDocs.filter(g => g !== null);
                 setGroups(validGroups);
-                console.log('✅ グループ詳細:', validGroups);
 
                 // 3. get photos
                 const photosQuery = query(
