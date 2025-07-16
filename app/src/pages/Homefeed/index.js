@@ -360,6 +360,7 @@ export default function HomeFeed() {
                                 src={photo.signedUrl}
                                 alt=""
                                 className="w-full rounded-xl object-cover"
+                                loading="lazy"
                             />
                         </div>
                     ))}
