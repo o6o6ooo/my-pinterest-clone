@@ -93,7 +93,7 @@ export default function Post() {
             const idToken = await auth.currentUser.getIdToken();
             const UPLOAD_URL =
                 process.env.NODE_ENV === 'development'
-                    ? 'http://localhost:5001/api/upload'
+                    ? 'http://192.168.4.48:5001/api/upload'
                     : 'https://kuusi.onrender.com/api/upload';
             const userId = auth.currentUser.uid;
 
