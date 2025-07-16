@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, getDoc, doc, query } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, query, updateDoc, arrayUnion, arrayRemove, deleteDoc, where, setDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 import Masonry from 'react-masonry-css';
+import cleanInput from '../../utils/cleanInput';
+import FormInput from '../../components/FormInput';
+import FormButton from '../../components/FormButton';
+import { XMarkIcon } from '@heroicons/react/24/solid';
+
 import Loading from '../../components/Loading';
 
 export default function BrowseByYear() {
@@ -11,6 +16,11 @@ export default function BrowseByYear() {
     const [loading, setLoading] = useState(true);
     const [showPreview, setShowPreview] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
+    const [showEditOverlay, setShowEditOverlay] = useState(false);
+    const [year, setYear] = useState('');
+    const [tagInput, setTagInput] = useState('');
+    const [tags, setTags] = useState([]);
+
 
     useEffect(() => {
         if (!auth.currentUser) return;
@@ -75,6 +85,46 @@ export default function BrowseByYear() {
         ? photos.filter(photo => photo.year === selectedYear)
         : photos;
 
+    // favourite toggle
+    const handleToggleFavourite = async (photoId) => {
+        if (!auth.currentUser) return;
+        if (!selectedPhoto) return;
+
+        const photoRef = doc(db, 'photos', photoId);
+        const isFavourite = selectedPhoto.favourites?.includes(auth.currentUser.uid);
+
+        try {
+            await updateDoc(photoRef, {
+                favourites: isFavourite
+                    ? arrayRemove(auth.currentUser.uid)
+                    : arrayUnion(auth.currentUser.uid),
+            });
+
+            setPhotos(prevPhotos =>
+                prevPhotos.map(photo =>
+                    photo.id === photoId
+                        ? {
+                            ...photo,
+                            favourites: isFavourite
+                                ? photo.favourites.filter(uid => uid !== auth.currentUser.uid)
+                                : [...(photo.favourites || []), auth.currentUser.uid],
+                        }
+                        : photo
+                )
+            );
+
+            setSelectedPhoto(prev => ({
+                ...prev,
+                favourites: isFavourite
+                    ? prev.favourites.filter(uid => uid !== auth.currentUser.uid)
+                    : [...(prev.favourites || []), auth.currentUser.uid],
+            }));
+        } catch (error) {
+            console.error('Failed to toggle favourite:', error);
+            alert('Failed to update favourite status.');
+        }
+    };
+
     const openPreview = (photo) => {
         setSelectedPhoto(photo);
         setShowPreview(true);
@@ -101,6 +151,94 @@ export default function BrowseByYear() {
         1200: 4,
         992: 3,
         768: 2,
+    };
+
+    // edit overlay open
+    const openEditOverlay = () => {
+        if (selectedPhoto?.hashtags?.length) {
+            setTags(selectedPhoto.hashtags);
+        } else {
+            setTags([]);
+        }
+        setTagInput('');
+        setYear(selectedPhoto?.year || '');
+        setShowEditOverlay(true);
+    };
+
+    const handleTagKeyDown = (e) => {
+        if (e.key === 'Enter' && tagInput.trim() !== '') {
+            e.preventDefault();
+            const cleaned = cleanInput(tagInput, { toLowerCase: true, ensureHash: true });
+            if (!tags.includes(cleaned)) {
+                setTags([...tags, cleaned]);
+            }
+            setTagInput('');
+        }
+    };
+
+    // save edit update
+    const handleSaveEdit = async () => {
+        if (!selectedPhoto) return;
+        setLoading(true);
+
+        try {
+            const photoRef = doc(db, 'photos', selectedPhoto.id);
+
+            const updatedData = { year: year || null };
+            if (tags.length > 0) {
+                updatedData.hashtags = tags.map(tag => tag.toLowerCase());
+            }
+
+            await updateDoc(photoRef, updatedData);
+
+            const userId = auth.currentUser.uid;
+
+            // get existing user hashtag settings by user + group
+            const snapshot = await getDocs(query(
+                collection(db, 'user_hashtag_settings'),
+                where('user_id', '==', userId),
+                where('group_id', '==', selectedPhoto.group_id)
+            ));
+            const existingTags = snapshot.docs.map(doc => doc.data().hashtag);
+
+            const newTags = tags.filter(tag => !existingTags.includes(tag.toLowerCase()));
+
+            await Promise.all(newTags.map(async (tag) => {
+                const docId = `${userId}_${tag.toLowerCase()}_${selectedPhoto.group_id}`;
+                const settingRef = doc(db, 'user_hashtag_settings', docId);
+                await setDoc(settingRef, {
+                    user_id: userId,
+                    hashtag: tag.toLowerCase(),
+                    group_id: selectedPhoto.group_id,
+                    show_in_feed: true,
+                    updated_at: new Date(),
+                }, { merge: true });
+            }));
+
+            setPhotos(prev =>
+                prev.map(p => p.id === selectedPhoto.id ? { ...p, ...updatedData } : p)
+            );
+            setSelectedPhoto(prev => ({ ...prev, ...updatedData }));
+            setShowEditOverlay(false);
+
+            alert('Photo details updated successfully!');
+        } catch (error) {
+            console.error('Failed to update photo details:', error);
+            alert('Failed to save changes. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const deletePhoto = async (photoId) => {
+        try {
+            await deleteDoc(doc(db, 'photos', photoId));
+            setPhotos(prev => prev.filter(p => p.id !== photoId));
+            alert('Photo deleted.');
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('Failed to delete photo.');
+        }
     };
 
     return (
@@ -142,7 +280,7 @@ export default function BrowseByYear() {
             {/* preview */}
             {showPreview && selectedPhoto && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black bg-opacity-70"
+                    className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black bg-opacity-70 bottom-[10vh]"
                     onClick={closePreview}
                 >
                     <div
@@ -152,11 +290,14 @@ export default function BrowseByYear() {
                             closePreview();
                         }}
                     >
+                        {/* photo */}
                         <img
                             src={selectedPhoto.signedUrl || selectedPhoto.photo_url}
                             alt=""
                             className="max-w-full max-h-[70vh] rounded-xl"
                         />
+
+                        {/* year and hashtags */}
                         <div className="absolute bottom-0 left-0 right-0 text-white p-2 flex justify-between items-center rounded-b-xl">
                             <span className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium">
                                 {selectedPhoto.year}
@@ -173,6 +314,60 @@ export default function BrowseByYear() {
                             </div>
                         </div>
 
+                        {/* user icon and buttons */}
+                        {selectedPhoto.posted_by_user && (
+                            <div className="absolute left-0 -bottom-12 flex items-center gap-2 z-10">
+                                <div
+                                    className="rounded-full text-2xl w-10 h-10 flex items-center justify-center border-2 border-white shadow-md"
+                                    style={{
+                                        backgroundColor:
+                                            selectedPhoto.posted_by_user.bgColour,
+                                    }}
+                                >
+                                    {selectedPhoto.posted_by_user.icon}
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleFavourite(selectedPhoto.id);
+                                    }}
+                                    className="bg-white rounded-full w-10 h-10 flex items-center justify-center shadow text-xl"
+                                >
+                                    {selectedPhoto.favourites?.includes(
+                                        auth.currentUser.uid
+                                    )
+                                        ? '❤️'
+                                        : '🤍'}
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        openEditOverlay();
+                                    }}
+                                    className="bg-white rounded-full w-10 h-10 flex items-center justify-center shadow text-xl"
+                                >
+                                    ⚙️
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (
+                                            window.confirm(
+                                                'Are you sure you want to delete this photo?'
+                                            )
+                                        ) {
+                                            deletePhoto(selectedPhoto.id);
+                                            closePreview();
+                                        }
+                                    }}
+                                    className="bg-white rounded-full w-10 h-10 flex items-center justify-center shadow text-xl"
+                                >
+                                    🗑️
+                                </button>
+                            </div>
+                        )}
+
+                        {/* close button */}
                         <button
                             onClick={closePreview}
                             className="absolute top-2 right-2 bg-white bg-opacity-80 rounded-full w-8 h-8 flex items-center justify-center"
@@ -182,6 +377,71 @@ export default function BrowseByYear() {
                     </div>
                 </div>
             )}
+
+            {/* photo edit overlay */}
+            {showEditOverlay && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center"
+                    onClick={() => setShowEditOverlay(false)} // 背景クリックで閉じる
+                >
+                    <div
+                        className="bg-transparent p-4 flex flex-col items-center gap-4 w-full max-w-xs"
+                        onClick={(e) => e.stopPropagation()} // 中のクリックでは閉じない
+                    >
+                        {/* Year */}
+                        <FormInput
+                            label="Year"
+                            id="year"
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={year}
+                            onChange={(e) => setYear(cleanInput(e.target.value))}
+                            disabled={loading}
+                        />
+
+                        {/* Hashtags */}
+                        <div className="w-full flex flex-col gap-2">
+                            <FormInput
+                                id="tag"
+                                label="Hashtags"
+                                value={tagInput}
+                                onChange={(e) => setTagInput(cleanInput(e.target.value, { toLowerCase: false }))}
+                                onKeyDown={handleTagKeyDown}
+                                disabled={loading}
+                            />
+
+                            {/* Selected tags */}
+                            <div className="flex flex-wrap gap-2">
+                                {tags.map((tag, index) => (
+                                    <span
+                                        key={index}
+                                        className="flex items-center bg-[#0A4A6E] text-white text-xs font-medium rounded-full px-3 py-1 cursor-pointer"
+                                        onClick={() => {
+                                            setTags(tags.filter((_, i) => i !== index));
+                                        }}
+                                    >
+                                        {tag}
+                                        <XMarkIcon className="w-3 h-3 ml-1 text-white" />
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* save */}
+                        <FormButton
+                            loading={loading}
+                            type="button"
+                            onClick={handleSaveEdit}
+                            loadingText="Saving..."
+                            fullWidth={false}
+                        >
+                            Save
+                        </FormButton>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }
