@@ -74,6 +74,7 @@ export default function HomeFeed() {
                 );
                 const photoSnap = await getDocs(photosQuery);
                 const photoData = photoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                photoData.sort((a, b) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0));
 
                 // 4. get posted_by user info
                 const userIds = [...new Set(photoData.map(photo => photo.posted_by))];
