@@ -34,66 +34,92 @@ export default function HomeFeed() {
     useEffect(() => {
         if (!auth.currentUser) return;
 
-        const fetchGroups = async () => {
-            const q = query(collection(db, 'groups'));
-            const snapshot = await getDocs(q);
-            const groupData = snapshot.docs
-                .map(doc => ({ id: doc.id, ...doc.data() }))
-                .filter(group => group.members.includes(auth.currentUser.uid));
-            setGroups(groupData);
-            return groupData;
-        };
+        const fetchUserGroupsAndPhotos = async () => {
+            try {
+                setLoading(true);
 
-        const fetchPhotos = async () => {
-            const q = query(collection(db, 'photos'));
-            const snapshot = await getDocs(q);
-            const photoData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            // 投稿者のuserId一覧を取得（重複排除）
-            const userIds = [...new Set(photoData.map(photo => photo.posted_by))];
-
-            // 各ユーザーの情報を取得
-            const userDocs = await Promise.all(
-                userIds.map(async (uid) => {
-                    const userDoc = await getDoc(doc(db, 'users', uid));
-                    return { uid, ...userDoc.data() };
-                })
-            );
-
-            const userMap = {};
-            userDocs.forEach(user => {
-                userMap[user.uid] = user;
-            });
-
-            // Cloudinary署名付きURLを取得
-            const idToken = await auth.currentUser.getIdToken();
-            const publicIds = photoData.map(photo => photo.photo_url);
-
-            const response = await fetch(
-                process.env.NODE_ENV === 'development'
-                    ? 'http://192.168.4.48:5001/api/cloudinary-signed-urls'
-                    : 'https://kuusi.onrender.com/api/cloudinary-signed-urls',
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${idToken}`,
-                    },
-                    body: JSON.stringify({ publicIds }),
+                // 1. get group_id from user collection
+                const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+                if (!userDoc.exists()) {
+                    console.error('User document not found');
+                    return;
                 }
-            );
 
-            const signedUrls = await response.json();
+                const userData = userDoc.data();
+                const groupIds = userData.groups || [];
+                console.log('✅ ユーザーが所属するグループID:', groupIds);
 
-            // 写真にsignedUrl + 投稿者情報を追加
-            const photoDataWithExtras = photoData.map(photo => ({
-                ...photo,
-                signedUrl: signedUrls[photo.photo_url],
-                posted_by_user: userMap[photo.posted_by] || null,
-            }));
+                if (groupIds.length === 0) {
+                    setGroups([]);
+                    setPhotos([]);
+                    return;
+                }
 
-            console.log('Photos with user info:', photoDataWithExtras);
-            setPhotos(photoDataWithExtras);
+                // 2. get group details
+                const groupDocs = await Promise.all(
+                    groupIds.map(async (gid) => {
+                        const gDoc = await getDoc(doc(db, 'groups', gid));
+                        return gDoc.exists() ? { id: gDoc.id, ...gDoc.data() } : null;
+                    })
+                );
+
+                const validGroups = groupDocs.filter(g => g !== null);
+                setGroups(validGroups);
+                console.log('✅ グループ詳細:', validGroups);
+
+                // 3. get photos
+                const photosQuery = query(
+                    collection(db, 'photos'),
+                    where('group_id', 'in', groupIds)
+                );
+                const photoSnap = await getDocs(photosQuery);
+                const photoData = photoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // 4. get posted_by user info
+                const userIds = [...new Set(photoData.map(photo => photo.posted_by))];
+                const userDocs = await Promise.all(
+                    userIds.map(async (uid) => {
+                        const userDoc = await getDoc(doc(db, 'users', uid));
+                        return userDoc.exists() ? { uid, ...userDoc.data() } : null;
+                    })
+                );
+                const userMap = {};
+                userDocs.filter(u => u).forEach(user => {
+                    userMap[user.uid] = user;
+                });
+
+                // 5. get signed URLs for photos
+                const idToken = await auth.currentUser.getIdToken();
+                const publicIds = photoData.map(photo => photo.photo_url);
+
+                const response = await fetch(
+                    process.env.NODE_ENV === 'development'
+                        ? 'http://192.168.4.48:5001/api/cloudinary-signed-urls'
+                        : 'https://kuusi.onrender.com/api/cloudinary-signed-urls',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${idToken}`,
+                        },
+                        body: JSON.stringify({ publicIds }),
+                    }
+                );
+
+                const signedUrls = await response.json();
+
+                const photoDataWithExtras = photoData.map(photo => ({
+                    ...photo,
+                    signedUrl: signedUrls[photo.photo_url],
+                    posted_by_user: userMap[photo.posted_by] || null,
+                }));
+
+                setPhotos(photoDataWithExtras);
+            } catch (error) {
+                console.error('Error fetching groups and photos:', error);
+            } finally {
+                setLoading(false);
+            }
         };
 
         const fetchUserHashtags = async () => {
@@ -110,19 +136,7 @@ export default function HomeFeed() {
         };
 
         (async () => {
-            try {
-                setLoading(true);
-                await Promise.all([
-                    fetchGroups(),
-                    fetchPhotos(),
-                    fetchUserHashtags()
-                ]);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                // 必要ならエラー表示など
-            } finally {
-                setLoading(false);
-            }
+            await Promise.all([fetchUserGroupsAndPhotos(), fetchUserHashtags()]);
         })();
     }, []);
 
