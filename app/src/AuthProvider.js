@@ -14,8 +14,8 @@ export default function AuthProvider({ children }) {
     // pages only for signed in user
     const authPages = [
         '/home',
+        '/browse-by-year',
         '/upload',
-        '/notifications',
         '/user',
         '/post',
         '/user/create-group',
