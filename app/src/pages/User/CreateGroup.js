@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getDoc, setDoc, doc, serverTimestamp } from "firebase/firestore";
+import { getDoc, setDoc, doc, serverTimestamp, arrayUnion, updateDoc } from "firebase/firestore";
 import { auth, db } from '../../firebase';
 import cleanInput from '../../utils/cleanInput';
 import FormInput from '../../components/FormInput';
@@ -47,6 +47,11 @@ export default function CreateGroup({ onClose }) {
             };
 
             await setDoc(doc(db, 'groups', lowerGroupId), groupData);
+
+            // Add groupId to current user's `groups` field
+            await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+                groups: arrayUnion(lowerGroupId)
+            });
             console.log('Group created:', groupData);
 
             setSuccessMessage('Group created successfully!');
