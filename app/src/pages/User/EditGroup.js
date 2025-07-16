@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, updateDoc, doc, getDoc } from "firebase/firestore";
+import { updateDoc, doc, getDoc } from "firebase/firestore";
 import { auth, db } from '../../firebase';
 import cleanInput from '../../utils/cleanInput';
 import FormInput from '../../components/FormInput';
@@ -23,19 +23,44 @@ export default function EditGroup({ onClose }) {
     useEffect(() => {
         const fetchGroups = async () => {
             if (!auth.currentUser) return;
-            const snapshot = await getDocs(collection(db, 'groups'));
-            const userGroups = snapshot.docs
-                .map(doc => ({ id: doc.id, ...doc.data() }))
-                .filter(group => group.members.includes(auth.currentUser.uid));
 
-            setGroups(userGroups);
-            if (userGroups.length > 0) {
-                const firstGroup = userGroups[0];
-                setGroupName(firstGroup.group_name);
-                setGroupId(firstGroup.id);
-                setGroupLink(firstGroup.group_link);
+            try {
+                // get user groups
+                const userRef = doc(db, 'users', auth.currentUser.uid);
+                const userDoc = await getDoc(userRef);
+
+                if (!userDoc.exists()) return;
+
+                const userData = userDoc.data();
+                const userGroupIds = userData.groups || [];
+
+                if (userGroupIds.length === 0) {
+                    setGroups([]);
+                    return;
+                }
+
+                // get group data
+                const groupDocs = await Promise.all(
+                    userGroupIds.map(id => getDoc(doc(db, 'groups', id)))
+                );
+
+                const userGroups = groupDocs
+                    .filter(docSnap => docSnap.exists())
+                    .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+
+                setGroups(userGroups);
+
+                if (userGroups.length > 0) {
+                    const firstGroup = userGroups[0];
+                    setGroupName(firstGroup.group_name);
+                    setGroupId(firstGroup.id);
+                    setGroupLink(firstGroup.group_link);
+                }
+            } catch (error) {
+                console.error('Error fetching groups:', error);
             }
         };
+
         fetchGroups();
     }, []);
 
