@@ -85,6 +85,17 @@ export default function BrowseByYear() {
         setSelectedPhoto(null);
     };
 
+    useEffect(() => {
+        if (showPreview) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [showPreview]);
+
     const breakpointColumnsObj = {
         default: 5,
         1200: 4,
