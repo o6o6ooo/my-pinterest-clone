@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updateDoc, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
 import { ArrowLeftCircleIcon } from '@heroicons/react/24/solid';
 import FormButton from '../../components/FormButton';
 
@@ -14,6 +12,7 @@ export default function EditIcon({ onClose }) {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const colours = ['#A5C3DE', '#F7C59F', '#DCD6F7', '#F6A6B2', '#C8E3D4', '#FFD6A5', '#D9E5FF', '#E6E6FA', '#FBE7A1', '#FFB3C1', '#FFF9B1', '#9AD4EB', '#A5D8F3', '#C7E9F1', '#FFB6B9', '#FADADD'];
     const [loading, setLoading] = useState(false);
+    const Picker = lazy(() => import("emoji-picker-react")); // lazy loadで読み込み
 
     // get icon and background
     useEffect(() => {
@@ -70,15 +69,16 @@ export default function EditIcon({ onClose }) {
 
             {/* emoji picker */}
             {showEmojiPicker && (
-                <div>
+                <Suspense fallback={<div>Loading emoji picker...</div>}>
                     <Picker
-                        data={data}
-                        onEmojiSelect={(emoji) => {
-                            setIcon(emoji.native);
+                        onEmojiClick={(emojiData, event) => {
+                            setIcon(emojiData.emoji);
                             setShowEmojiPicker(false);
                         }}
+                        searchPlaceholder="Search emojis..."
+                        disableAutoFocusSearch
                     />
-                </div>
+                </Suspense>
             )}
 
             {/* choose background */}
