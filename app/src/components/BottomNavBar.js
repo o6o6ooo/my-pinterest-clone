@@ -1,21 +1,21 @@
 import { NavLink } from 'react-router-dom';
 import {
     HomeIcon as HomeIconOutline,
-    BellIcon as BellIconOutline,
+    ClockIcon as ClockIconOutline,
     UserIcon as UserIconOutline,
     CameraIcon,
 } from '@heroicons/react/24/outline';
 
 import {
     HomeIcon as HomeIconSolid,
-    BellIcon as BellIconSolid,
+    ClockIcon as ClockIconSolid,
     UserIcon as UserIconSolid,
 } from '@heroicons/react/24/solid';
 
 export default function BottomNavBar({ onUploadClick }) {
     const tabs = [
         { name: 'Home', to: '/home', IconOutline: HomeIconOutline, IconSolid: HomeIconSolid },
-        { name: 'Notifications', to: '/notifications', IconOutline: BellIconOutline, IconSolid: BellIconSolid },
+        { name: 'Notifications', to: '/notifications', IconOutline: ClockIconOutline, IconSolid: ClockIconSolid },
         { name: 'User', to: '/user', IconOutline: UserIconOutline, IconSolid: UserIconSolid },
     ];
 
