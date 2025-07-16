@@ -110,13 +110,19 @@ export default function HomeFeed() {
         };
 
         (async () => {
-            setLoading(true);
-            const [groupData, ,] = await Promise.all([
-                fetchGroups(),
-                fetchPhotos(),
-                fetchUserHashtags()
-            ]);
-            setLoading(false);
+            try {
+                setLoading(true);
+                await Promise.all([
+                    fetchGroups(),
+                    fetchPhotos(),
+                    fetchUserHashtags()
+                ]);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                // 必要ならエラー表示など
+            } finally {
+                setLoading(false);
+            }
         })();
     }, []);
 
