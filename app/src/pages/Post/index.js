@@ -73,7 +73,10 @@ export default function Post() {
             if (isNaN(numYear) || numYear < 1950 || numYear > currentYear) {
                 newErrors.push('Please enter a year between 1950 and the current year.');
             }
+        } else {
+            newErrors.push('Year is required.');
         }
+
         if (tags.length > 5) newErrors.push('You can add up to 5 hashtags.');
         if (!selectedGroup) newErrors.push('Please select a group.');
         setErrors(newErrors);
@@ -90,7 +93,7 @@ export default function Post() {
             const idToken = await auth.currentUser.getIdToken();
             const UPLOAD_URL =
                 process.env.NODE_ENV === 'development'
-                    ? 'http://localhost:5001/api/upload'
+                    ? 'http://192.168.4.48:5001/api/upload'
                     : 'https://kuusi.onrender.com/api/upload';
             const userId = auth.currentUser.uid;
 
