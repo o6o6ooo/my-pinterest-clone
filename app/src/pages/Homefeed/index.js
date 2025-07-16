@@ -45,7 +45,6 @@ export default function HomeFeed() {
         };
 
         const fetchPhotos = async () => {
-            setLoading(true);
             const q = query(collection(db, 'photos'));
             const snapshot = await getDocs(q);
             const photoData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
