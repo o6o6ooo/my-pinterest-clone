@@ -116,6 +116,32 @@ app.get('/api/image/:publicId', async (req, res) => {
     }
 });
 
+app.post('/api/delete-photo', async (req, res) => {
+    try {
+        await verifyFirebaseToken(req);
+        const { publicId } = req.body;
+
+        if (!publicId) {
+            return res.status(400).json({ error: 'publicId is required' });
+        }
+
+        const result = await cloudinary.uploader.destroy(publicId, {
+            type: 'authenticated', // 認証付きでアップロードしているので指定
+            invalidate: true // CDNキャッシュも無効化
+        });
+
+        if (result.result !== 'ok') {
+            console.error('Cloudinary delete failed:', result);
+            return res.status(500).json({ error: 'Failed to delete from Cloudinary' });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Delete API error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
