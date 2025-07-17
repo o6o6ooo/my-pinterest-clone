@@ -256,9 +256,33 @@ export default function BrowseByYear() {
         }
     };
 
-    const deletePhoto = async (photoId) => {
+    const deletePhoto = async (photoId, publicId) => {
         try {
+            const API_BASE_URL =
+                process.env.NODE_ENV === 'development'
+                    ? 'http://192.168.4.48:5001'
+                    : 'https://kuusi.onrender.com';
+
+            const token = await auth.currentUser.getIdToken();
+
+            // delete from Firestore
             await deleteDoc(doc(db, 'photos', photoId));
+
+            // delete from Cloudinary
+            const res = await fetch(`${API_BASE_URL}/api/delete-photo`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, // Firebase IDトークン
+                },
+                body: JSON.stringify({ publicId }),
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Unknown delete error');
+            }
+
             setPhotos(prev => prev.filter(p => p.id !== photoId));
             alert('Photo deleted.');
         } catch (error) {
@@ -382,7 +406,7 @@ export default function BrowseByYear() {
                                                 'Are you sure you want to delete this photo?'
                                             )
                                         ) {
-                                            deletePhoto(selectedPhoto.id);
+                                            deletePhoto(selectedPhoto.id, selectedPhoto.photo_url);
                                             closePreview();
                                         }
                                     }}
