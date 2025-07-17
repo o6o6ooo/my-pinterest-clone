@@ -126,7 +126,6 @@ app.post('/api/delete-photo', async (req, res) => {
         }
 
         const result = await cloudinary.uploader.destroy(publicId, {
-            type: 'authenticated', // 認証付きでアップロードしているので指定
             invalidate: true // CDNキャッシュも無効化
         });
 
