@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from './firebase';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -29,67 +29,77 @@ export default function AuthProvider({ children }) {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
+                try {
+                    // トークンとユーザー情報を最新化
+                    await user.reload();
+                    await user.getIdToken(true);
+                } catch (err) {
+                    console.error('Auth session is invalid. Signing out.', err);
+                    await signOut(auth);
+                    navigate('/auth');
+                    return;
+                }
+
                 if (!user.emailVerified) {
                     if (location.pathname !== '/verify-email') {
                         navigate('/verify-email');
                     }
-                } else {
-                    // join group
-                    const joinGroupId = localStorage.getItem('joinGroupId');
-                    if (joinGroupId) {
-                        try {
-                            const groupRef = doc(db, 'groups', joinGroupId);
-                            const groupDoc = await getDoc(groupRef);
-
-                            if (groupDoc.exists()) {
-                                const groupData = groupDoc.data();
-                                if (!groupData.members.includes(user.uid)) {
-                                    // add user to group
-                                    const updatedMembers = [...groupData.members, user.uid];
-                                    await setDoc(groupRef, { ...groupData, members: updatedMembers });
-                                    console.log('User added to group!');
-
-                                    // update user collection
-                                    const userRef = doc(db, 'users', user.uid);
-                                    const userDoc = await getDoc(userRef);
-                                    const userData = userDoc.data();
-                                    const updatedGroups = userData.groups
-                                        ? [...new Set([...userData.groups, joinGroupId])]
-                                        : [joinGroupId];
-
-                                    await setDoc(userRef, { ...userData, groups: updatedGroups });
-                                }
-                                navigate('/user/edit-group');
-                            } else {
-                                console.error('Group not found.');
-                                navigate('/home');
-                            }
-                        } catch (error) {
-                            console.error('Error joining group:', error);
-                            navigate('/home');
-                        } finally {
-                            localStorage.removeItem('joinGroupId');
-                        }
-                        return;
-                    }
-
-                    // go to /home after normal sign in
-                    if (
-                        user &&
-                        joinGroupId === null &&
-                        publicPages.includes(location.pathname)
-                    ) {
-                        navigate('/home');
-                    }
-
-                    // go to /home instead somewhere not allowed
-                    const isAllowedPage =
-                        publicPages.some(path => location.pathname.startsWith(path)) ||
-                        authPages.some(path => location.pathname.startsWith(path));
-                    if (!isAllowedPage) {
-                        navigate('/home');
-                    }
+                    return;
                 }
+
+                const joinGroupId = localStorage.getItem('joinGroupId');
+                if (joinGroupId) {
+                    try {
+                        const groupRef = doc(db, 'groups', joinGroupId);
+                        const groupDoc = await getDoc(groupRef);
+
+                        if (groupDoc.exists()) {
+                            const groupData = groupDoc.data();
+                            if (!groupData.members.includes(user.uid)) {
+                                // add user to group
+                                const updatedMembers = [...groupData.members, user.uid];
+                                await setDoc(groupRef, { ...groupData, members: updatedMembers });
+                                console.log('User added to group!');
+
+                                // update user collection
+                                const userRef = doc(db, 'users', user.uid);
+                                const userDoc = await getDoc(userRef);
+                                const userData = userDoc.data();
+                                const updatedGroups = userData.groups
+                                    ? [...new Set([...userData.groups, joinGroupId])]
+                                    : [joinGroupId];
+
+                                await setDoc(userRef, { ...userData, groups: updatedGroups });
+                            }
+                            navigate('/user/edit-group');
+                        } else {
+                            console.error('Group not found.');
+                            navigate('/home');
+                        }
+                    } catch (error) {
+                        console.error('Error joining group:', error);
+                        navigate('/home');
+                    } finally {
+                        localStorage.removeItem('joinGroupId');
+                    }
+                    return;
+                }
+
+                if (
+                    user &&
+                    joinGroupId === null &&
+                    publicPages.includes(location.pathname)
+                ) {
+                    navigate('/home');
+                }
+
+                const isAllowedPage =
+                    publicPages.some(path => location.pathname.startsWith(path)) ||
+                    authPages.some(path => location.pathname.startsWith(path));
+                if (!isAllowedPage) {
+                    navigate('/home');
+                }
+
             } else {
                 const isPublicPage = publicPages.some(path => location.pathname.startsWith(path));
                 if (!isPublicPage) {
@@ -101,6 +111,5 @@ export default function AuthProvider({ children }) {
         return () => unsubscribe();
         // eslint-disable-next-line
     }, [navigate, location]);
-
     return children;
 }
