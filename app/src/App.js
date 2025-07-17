@@ -10,7 +10,6 @@ import VerifyEmail from './pages/VerifyEmail';
 import AuthProvider from './AuthProvider';
 import BottomNavBar from './components/BottomNavBar';
 import MainLayout from './layouts/MainLayout';
-import UploadOverlay from './components/UploadOverlay';
 import Post from './pages/Post';
 import CreateGroup from './pages/User/CreateGroup';
 import ChangeEmail from './pages/User/ChangeEmail';
@@ -71,11 +70,6 @@ function App() {
           <Route path="/user/hashtags" element={<Hashtags />} />
         </Route>
       </Routes>
-
-      <UploadOverlay
-        isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
-      />
 
       {shouldShowNavBar && (
         <BottomNavBar onUploadClick={() => setIsUploadOpen(true)} />
