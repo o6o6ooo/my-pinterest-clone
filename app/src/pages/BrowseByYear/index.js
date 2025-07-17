@@ -293,7 +293,7 @@ export default function BrowseByYear() {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 pb-20">
+        <div className="flex flex-col min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 pb-20 md:pl-[80px]">
             {/* タブバー */}
             <div className="sticky top-0 z-10 bg-[#A5C3DE] flex gap-2 py-2 overflow-x-auto whitespace-nowrap no-scrollbar">
                 {years.map(year => (
