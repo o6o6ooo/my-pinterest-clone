@@ -14,8 +14,8 @@ export default function AuthProvider({ children }) {
     // pages only for signed in user
     const authPages = [
         '/home',
+        '/browse-by-year',
         '/upload',
-        '/notifications',
         '/user',
         '/post',
         '/user/create-group',
@@ -56,9 +56,20 @@ export default function AuthProvider({ children }) {
                         if (groupDoc.exists()) {
                             const groupData = groupDoc.data();
                             if (!groupData.members.includes(user.uid)) {
+                                // add user to group
                                 const updatedMembers = [...groupData.members, user.uid];
                                 await setDoc(groupRef, { ...groupData, members: updatedMembers });
                                 console.log('User added to group!');
+
+                                // update user collection
+                                const userRef = doc(db, 'users', user.uid);
+                                const userDoc = await getDoc(userRef);
+                                const userData = userDoc.data();
+                                const updatedGroups = userData.groups
+                                    ? [...new Set([...userData.groups, joinGroupId])]
+                                    : [joinGroupId];
+
+                                await setDoc(userRef, { ...userData, groups: updatedGroups });
                             }
                             navigate('/user/edit-group');
                         } else {

@@ -1,6 +1,6 @@
 
 # 🌲 my-pinterest-clone app "Kuusi"
-A littele Pinterest-look Progressive Web App built with React.
+A little Pinterest-look Progressive Web App built with React.
 
 ## 📸 Features
 - sharing photos with your family, friends
@@ -47,3 +47,7 @@ This ensures that:
 - enabled to upload multiple photos
 - enabled to upload .heic photos
 - enabled to compress photos up to 1MB
+
+### 16 July 2025
+- added "Brouwse by year" tab, you can now filter photos by year
+- changed year to be required, you have to put year when posting

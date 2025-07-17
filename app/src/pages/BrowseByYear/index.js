@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, getDoc, query, where, doc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc, query, updateDoc, arrayUnion, arrayRemove, deleteDoc, where, setDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 import Masonry from 'react-masonry-css';
 import cleanInput from '../../utils/cleanInput';
@@ -8,19 +8,18 @@ import FormButton from '../../components/FormButton';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import Loading from '../../components/Loading';
 
-export default function HomeFeed() {
+export default function BrowseByYear() {
 
     const [photos, setPhotos] = useState([]);
-    const [selectedTab, setSelectedTab] = useState('all');
+    const [selectedYear, setSelectedYear] = useState(null);
     const [showPreview, setShowPreview] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
-    const [groups, setGroups] = useState([]);
-    const [hashtags, setHashtags] = useState([]);
     const [showEditOverlay, setShowEditOverlay] = useState(false);
-    const [year, setYear] = useState('');
+    const [years, setYears] = useState([]);
     const [tagInput, setTagInput] = useState('');
+    const [loading, setLoading] = useState(true);
     const [tags, setTags] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [year, setYear] = useState('');
 
     // adjust number of columns
     const breakpointColumnsObj = {
@@ -34,7 +33,7 @@ export default function HomeFeed() {
     useEffect(() => {
         if (!auth.currentUser) return;
 
-        const fetchUserGroupsAndPhotos = async () => {
+        const fetchUserGroupsAndPhotosByYear = async () => {
             try {
                 setLoading(true);
 
@@ -49,23 +48,12 @@ export default function HomeFeed() {
                 const groupIds = userData.groups || [];
 
                 if (groupIds.length === 0) {
-                    setGroups([]);
                     setPhotos([]);
+                    setYears([]);
                     return;
                 }
 
-                // 2. get group details
-                const groupDocs = await Promise.all(
-                    groupIds.map(async (gid) => {
-                        const gDoc = await getDoc(doc(db, 'groups', gid));
-                        return gDoc.exists() ? { id: gDoc.id, ...gDoc.data() } : null;
-                    })
-                );
-
-                const validGroups = groupDocs.filter(g => g !== null);
-                setGroups(validGroups);
-
-                // 3. get photos
+                // 2. get photos
                 const photosQuery = query(
                     collection(db, 'photos'),
                     where('group_id', 'in', groupIds)
@@ -74,12 +62,12 @@ export default function HomeFeed() {
                 const photoData = photoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 photoData.sort((a, b) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0));
 
-                // 4. get posted_by user info
+                // 3. get posted_by user info
                 const userIds = [...new Set(photoData.map(photo => photo.posted_by))];
                 const userDocs = await Promise.all(
-                    userIds.map(async (uid) => {
-                        const userDoc = await getDoc(doc(db, 'users', uid));
-                        return userDoc.exists() ? { uid, ...userDoc.data() } : null;
+                    userIds.map(async uid => {
+                        const uDoc = await getDoc(doc(db, 'users', uid));
+                        return uDoc.exists() ? { uid, ...uDoc.data() } : null;
                     })
                 );
                 const userMap = {};
@@ -87,10 +75,9 @@ export default function HomeFeed() {
                     userMap[user.uid] = user;
                 });
 
-                // 5. get signed URLs for photos
+                // 4. get signed URLs for photos
                 const idToken = await auth.currentUser.getIdToken();
                 const publicIds = photoData.map(photo => photo.photo_url);
-
                 const response = await fetch(
                     process.env.NODE_ENV === 'development'
                         ? 'http://192.168.4.48:5001/api/cloudinary-signed-urls'
@@ -104,82 +91,33 @@ export default function HomeFeed() {
                         body: JSON.stringify({ publicIds }),
                     }
                 );
-
                 const signedUrls = await response.json();
 
-                const photoDataWithExtras = photoData.map(photo => ({
+                const enrichedPhotos = photoData.map(photo => ({
                     ...photo,
                     signedUrl: signedUrls[photo.photo_url],
                     posted_by_user: userMap[photo.posted_by] || null,
                 }));
 
-                setPhotos(photoDataWithExtras);
+                // 5. create year list
+                const extractedYears = [...new Set(enrichedPhotos.map(p => p.year))].sort((a, b) => b - a);
+                setYears(extractedYears);
+                setSelectedYear(extractedYears[0] || null);
+                setPhotos(enrichedPhotos);
             } catch (error) {
-                console.error('Error fetching groups and photos:', error);
+                console.error('Error fetching photos by year:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        const fetchUserHashtags = async () => {
-            if (!auth.currentUser) return;
-
-            const q = query(
-                collection(db, 'user_hashtag_settings'),
-                where('user_id', '==', auth.currentUser.uid),
-                where('show_in_feed', '==', true)
-            );
-            const snapshot = await getDocs(q);
-            const data = snapshot.docs.map(doc => doc.data());
-            setHashtags(data);
-        };
-
-        (async () => {
-            await Promise.all([fetchUserGroupsAndPhotos(), fetchUserHashtags()]);
-        })();
+        fetchUserGroupsAndPhotosByYear();
     }, []);
 
-    // filter photos by user's groups
-    const userGroupIds = groups.map(g => g.id);
-
-    const filteredPhotos = photos.filter(photo => {
-        // exclude photos not in user's groups
-        if (!userGroupIds.includes(photo.group_id)) return false;
-
-        if (selectedTab === 'all') return true;
-        if (selectedTab === 'favourites') return photo.favourites?.includes(auth.currentUser.uid);
-        if (selectedTab.startsWith('group-')) {
-            const groupId = selectedTab.replace('group-', '');
-            return photo.group_id === groupId;
-        }
-        if (selectedTab.startsWith('hashtag-')) {
-            const hashtag = selectedTab.replace('hashtag-', '').toLowerCase();
-            return photo.hashtags?.some(tag => tag.toLowerCase() === hashtag);
-        }
-        return true;
-    });
-
-    // dedupe hashtags by lowercase tag text for tab bar
-    const uniqueHashtags = Object.values(
-        hashtags.reduce((acc, tag) => {
-            const lowerTag = tag.hashtag.toLowerCase();
-            if (!acc[lowerTag]) acc[lowerTag] = tag;
-            return acc;
-        }, {})
-    );
-
-    const tabs = [
-        { key: 'all', label: 'All' },
-        { key: 'favourites', label: 'Favourites' },
-        ...groups.map(group => ({
-            key: `group-${group.id}`,
-            label: `Group: ${group.group_name}`,
-        })),
-        ...uniqueHashtags.map(tag => ({
-            key: `hashtag-${tag.hashtag}`,
-            label: tag.hashtag,
-        })),
-    ];
+    // filter photos by selected year
+    const filteredPhotos = selectedYear
+        ? photos.filter(photo => photo.year === selectedYear)
+        : photos;
 
     // favourite toggle
     const handleToggleFavourite = async (photoId) => {
@@ -221,11 +159,11 @@ export default function HomeFeed() {
         }
     };
 
-    // preview open/close
     const openPreview = (photo) => {
         setSelectedPhoto(photo);
         setShowPreview(true);
     };
+
     const closePreview = () => {
         setShowPreview(false);
         setSelectedPhoto(null);
@@ -358,18 +296,18 @@ export default function HomeFeed() {
         <div className="flex flex-col min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 pb-20 md:pl-[80px]">
             {/* タブバー */}
             <div className="sticky top-0 z-10 bg-[#A5C3DE] flex gap-2 py-2 overflow-x-auto whitespace-nowrap no-scrollbar">
-                {tabs.map(tab => (
+                {years.map(year => (
                     <button
-                        key={tab.key}
-                        onClick={() => setSelectedTab(tab.key)}
-                        className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${selectedTab === tab.key ? 'bg-[#0A4A6E] text-white' : 'bg-white text-[#0A4A6E]'}`}
+                        key={year}
+                        onClick={() => setSelectedYear(year)}
+                        className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${selectedYear === year ? 'bg-[#0A4A6E] text-white' : 'bg-white text-[#0A4A6E]'}`}
                     >
-                        {tab.label}
+                        {year}
                     </button>
                 ))}
             </div>
 
-            {/* Masonry grid layout */}
+            {/* Masonry layout */}
             {loading ? (
                 <Loading />
             ) : (
@@ -381,10 +319,9 @@ export default function HomeFeed() {
                     {filteredPhotos.map(photo => (
                         <div key={photo.id} onClick={() => openPreview(photo)} className="relative cursor-pointer">
                             <img
-                                src={photo.signedUrl}
+                                src={photo.signedUrl || photo.photo_url}
                                 alt=""
                                 className="w-full rounded-xl object-cover"
-                                loading="lazy"
                             />
                         </div>
                     ))}
@@ -395,9 +332,7 @@ export default function HomeFeed() {
             {showPreview && selectedPhoto && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black bg-opacity-70 bottom-[10vh]"
-                    onClick={() => {
-                        closePreview();
-                    }}
+                    onClick={closePreview}
                 >
                     <div
                         className="max-w-[90vw] max-h-[90vh] relative"
@@ -408,13 +343,13 @@ export default function HomeFeed() {
                     >
                         {/* photo */}
                         <img
-                            src={selectedPhoto.signedUrl}
+                            src={selectedPhoto.signedUrl || selectedPhoto.photo_url}
                             alt=""
                             className="max-w-full max-h-[70vh] rounded-xl"
                         />
 
                         {/* year and hashtags */}
-                        <div className="absolute bottom-0 left-0 right-0 text-white p-2 flex flex-wrap gap-2 items-center justify-between rounded-b-xl">
+                        <div className="absolute bottom-0 left-0 right-0 text-white p-2 flex justify-between items-center rounded-b-xl">
                             <span className="text-xs bg-white text-[#0A4A6E] rounded px-2 py-1 font-medium">
                                 {selectedPhoto.year}
                             </span>
@@ -483,12 +418,9 @@ export default function HomeFeed() {
                             </div>
                         )}
 
-                        {/* close */}
+                        {/* close button */}
                         <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                closePreview();
-                            }}
+                            onClick={closePreview}
                             className="absolute top-2 right-2 bg-white bg-opacity-80 rounded-full w-8 h-8 flex items-center justify-center"
                         >
                             ✕
@@ -560,6 +492,7 @@ export default function HomeFeed() {
                     </div>
                 </div>
             )}
+
         </div>
     );
 }

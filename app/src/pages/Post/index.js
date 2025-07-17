@@ -8,7 +8,6 @@ import FormButton from '../../components/FormButton';
 import FormDropdown from '../../components/FormDropdown';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import imageCompression from 'browser-image-compression';
-import heic2any from 'heic2any';
 
 export default function Post() {
     const location = useLocation();
@@ -73,7 +72,10 @@ export default function Post() {
             if (isNaN(numYear) || numYear < 1950 || numYear > currentYear) {
                 newErrors.push('Please enter a year between 1950 and the current year.');
             }
+        } else {
+            newErrors.push('Year is required.');
         }
+
         if (tags.length > 5) newErrors.push('You can add up to 5 hashtags.');
         if (!selectedGroup) newErrors.push('Please select a group.');
         setErrors(newErrors);
@@ -90,7 +92,7 @@ export default function Post() {
             const idToken = await auth.currentUser.getIdToken();
             const UPLOAD_URL =
                 process.env.NODE_ENV === 'development'
-                    ? 'http://localhost:5001/api/upload'
+                    ? 'http://192.168.4.48:5001/api/upload'
                     : 'https://kuusi.onrender.com/api/upload';
             const userId = auth.currentUser.uid;
 
@@ -177,39 +179,6 @@ export default function Post() {
             newUrls.forEach(url => URL.revokeObjectURL(url));
         };
     }, [files]);
-
-    useEffect(() => {
-        const convertHeicFiles = async () => {
-            if (!files.length) return;
-
-            const converted = await Promise.all(
-                files.map(async (file) => {
-                    if (file.type === 'image/heic' || file.name?.toLowerCase().endsWith('.heic')) {
-                        try {
-                            const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
-                            return new File([convertedBlob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
-                        } catch (error) {
-                            console.error('HEIC conversion failed:', error);
-                            return null;
-                        }
-                    }
-                    return file; // 変換不要
-                })
-            );
-
-            // nullを除外してセット
-            const validFiles = converted.filter(f => f !== null);
-            if (validFiles.length > 0) {
-                setFiles(validFiles);
-            } else {
-                alert('選択されたファイルはすべて無効でした。');
-                navigate(-1);
-            }
-        };
-
-        convertHeicFiles();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#A5C3DE] text-[#0A4A6E] px-4 relative">
