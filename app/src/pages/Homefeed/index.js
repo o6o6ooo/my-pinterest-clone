@@ -326,9 +326,6 @@ export default function HomeFeed() {
                     ? 'http://192.168.4.48:5001'
                     : 'https://kuusi.onrender.com';
 
-            console.log('API Base URL:', API_BASE_URL);
-            console.log('Deleting photo with publicId:', publicId);
-
             const token = await auth.currentUser.getIdToken();
 
             // delete from Firestore

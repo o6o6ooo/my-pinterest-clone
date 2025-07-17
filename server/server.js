@@ -120,7 +120,6 @@ app.post('/api/delete-photo', async (req, res) => {
     try {
         await verifyFirebaseToken(req);
         const { publicId } = req.body;
-        console.log('Delete-photo API called with publicId:', publicId);
 
         if (!publicId) {
             return res.status(400).json({ error: 'publicId is required' });
@@ -130,8 +129,6 @@ app.post('/api/delete-photo', async (req, res) => {
             invalidate: true,
             type: 'authenticated'
         });
-
-        console.log('Cloudinary delete result:', result);
 
         if (result.result !== 'ok') {
             console.error('Cloudinary delete failed:', result);
