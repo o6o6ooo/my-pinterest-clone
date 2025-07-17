@@ -6,46 +6,78 @@ import cleanInput from '../../utils/cleanInput';
 import FormInput from '../../components/FormInput';
 import FormButton from '../../components/FormButton';
 import { XMarkIcon } from '@heroicons/react/24/solid';
-
 import Loading from '../../components/Loading';
 
 export default function BrowseByYear() {
+
     const [photos, setPhotos] = useState([]);
-    const [years, setYears] = useState([]);
     const [selectedYear, setSelectedYear] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [showPreview, setShowPreview] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState(null);
     const [showEditOverlay, setShowEditOverlay] = useState(false);
-    const [year, setYear] = useState('');
+    const [years, setYears] = useState([]);
     const [tagInput, setTagInput] = useState('');
+    const [loading, setLoading] = useState(true);
     const [tags, setTags] = useState([]);
+    const [year, setYear] = useState('');
 
+    // adjust number of columns
+    const breakpointColumnsObj = {
+        default: 5,
+        1200: 4,
+        992: 3,
+        768: 2,
+    };
 
+    // fetch groups, photos and hashtags
     useEffect(() => {
         if (!auth.currentUser) return;
 
-        const fetchPhotos = async () => {
+        const fetchUserGroupsAndPhotosByYear = async () => {
             try {
-                const q = query(collection(db, 'photos'));
-                const snapshot = await getDocs(q);
-                const photoData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setLoading(true);
 
-                const userIds = [...new Set(photoData.map(p => p.posted_by))];
+                // 1. get group_id from user collection
+                const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+                if (!userDoc.exists()) {
+                    console.error('User document not found');
+                    return;
+                }
+
+                const userData = userDoc.data();
+                const groupIds = userData.groups || [];
+
+                if (groupIds.length === 0) {
+                    setPhotos([]);
+                    setYears([]);
+                    return;
+                }
+
+                // 2. get photos
+                const photosQuery = query(
+                    collection(db, 'photos'),
+                    where('group_id', 'in', groupIds)
+                );
+                const photoSnap = await getDocs(photosQuery);
+                const photoData = photoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // 3. get posted_by user info
+                const userIds = [...new Set(photoData.map(photo => photo.posted_by))];
                 const userDocs = await Promise.all(
                     userIds.map(async uid => {
-                        const userDoc = await getDoc(doc(db, 'users', uid));
-                        return { uid, ...userDoc.data() };
+                        const uDoc = await getDoc(doc(db, 'users', uid));
+                        return uDoc.exists() ? { uid, ...uDoc.data() } : null;
                     })
                 );
                 const userMap = {};
-                userDocs.forEach(user => {
+                userDocs.filter(u => u).forEach(user => {
                     userMap[user.uid] = user;
                 });
 
+                // 4. get signed URLs for photos
                 const idToken = await auth.currentUser.getIdToken();
-                const publicIds = photoData.map(p => p.photo_url);
-                const res = await fetch(
+                const publicIds = photoData.map(photo => photo.photo_url);
+                const response = await fetch(
                     process.env.NODE_ENV === 'development'
                         ? 'http://192.168.4.48:5001/api/cloudinary-signed-urls'
                         : 'https://kuusi.onrender.com/api/cloudinary-signed-urls',
@@ -58,8 +90,7 @@ export default function BrowseByYear() {
                         body: JSON.stringify({ publicIds }),
                     }
                 );
-
-                const signedUrls = await res.json();
+                const signedUrls = await response.json();
 
                 const enrichedPhotos = photoData.map(photo => ({
                     ...photo,
@@ -67,20 +98,22 @@ export default function BrowseByYear() {
                     posted_by_user: userMap[photo.posted_by] || null,
                 }));
 
+                // 5. create year list
                 const extractedYears = [...new Set(enrichedPhotos.map(p => p.year))].sort((a, b) => b - a);
                 setYears(extractedYears);
                 setSelectedYear(extractedYears[0] || null);
                 setPhotos(enrichedPhotos);
-            } catch (err) {
-                console.error('Error loading photos:', err);
+            } catch (error) {
+                console.error('Error fetching photos by year:', error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchPhotos();
+        fetchUserGroupsAndPhotosByYear();
     }, []);
 
+    // filter photos by selected year
     const filteredPhotos = selectedYear
         ? photos.filter(photo => photo.year === selectedYear)
         : photos;
@@ -145,13 +178,6 @@ export default function BrowseByYear() {
             document.body.style.overflow = '';
         };
     }, [showPreview]);
-
-    const breakpointColumnsObj = {
-        default: 5,
-        1200: 4,
-        992: 3,
-        768: 2,
-    };
 
     // edit overlay open
     const openEditOverlay = () => {
@@ -230,9 +256,33 @@ export default function BrowseByYear() {
         }
     };
 
-    const deletePhoto = async (photoId) => {
+    const deletePhoto = async (photoId, publicId) => {
         try {
+            const API_BASE_URL =
+                process.env.NODE_ENV === 'development'
+                    ? 'http://192.168.4.48:5001'
+                    : 'https://kuusi.onrender.com';
+
+            const token = await auth.currentUser.getIdToken();
+
+            // delete from Firestore
             await deleteDoc(doc(db, 'photos', photoId));
+
+            // delete from Cloudinary
+            const res = await fetch(`${API_BASE_URL}/api/delete-photo`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`, // Firebase IDトークン
+                },
+                body: JSON.stringify({ publicId }),
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Unknown delete error');
+            }
+
             setPhotos(prev => prev.filter(p => p.id !== photoId));
             alert('Photo deleted.');
         } catch (error) {
@@ -356,7 +406,7 @@ export default function BrowseByYear() {
                                                 'Are you sure you want to delete this photo?'
                                             )
                                         ) {
-                                            deletePhoto(selectedPhoto.id);
+                                            deletePhoto(selectedPhoto.id, selectedPhoto.photo_url);
                                             closePreview();
                                         }
                                     }}
