@@ -41,7 +41,7 @@ function FormDropdown({
                 aria-haspopup="listbox"
                 aria-expanded={isOpen}
             >
-                {selected ? selected.group_name || selected.label || selected.value : `Select ${label}`}
+                {selected ? selected.name || selected.label || selected.value : `Select ${label}`}
                 <ChevronDownIcon className="w-5 h-5 text-[#0A4A6E]" />
             </button>
 
@@ -65,7 +65,7 @@ function FormDropdown({
                             role="option"
                             aria-selected={selected === option}
                         >
-                            {option.group_name || option.label || option.value}
+                            {option.name || option.label || option.value}
                         </button>
                     ))}
                 </div>

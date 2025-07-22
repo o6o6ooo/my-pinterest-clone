@@ -83,7 +83,7 @@ export default function Post() {
 
         const options = {
             maxWidthOrHeight: 1920,
-            maxSizeMB: 1,
+            maxSizeMB: 0.3,
             useWebWorker: true,
         };
 

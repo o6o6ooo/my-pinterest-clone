@@ -173,7 +173,7 @@ export default function HomeFeed() {
         { key: 'favourites', label: 'Favourites' },
         ...groups.map(group => ({
             key: `group-${group.id}`,
-            label: `Group: ${group.group_name}`,
+            label: `Group: ${group.name}`,
         })),
         ...uniqueHashtags.map(tag => ({
             key: `hashtag-${tag.hashtag}`,
