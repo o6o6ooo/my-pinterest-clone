@@ -18,7 +18,7 @@ export default function JoinGroup() {
                 const groupDoc = await getDoc(doc(db, 'groups', groupId));
                 if (groupDoc.exists()) {
                     const groupData = groupDoc.data();
-                    setGroupName(groupData.group_name);
+                    setGroupName(groupData.name);
 
                     // get user colection only when signed in
                     if (auth.currentUser) {
@@ -72,7 +72,7 @@ export default function JoinGroup() {
                         disabled
                         variant="readonly"
                     />
-                    
+
                     {/* Member icons */}
                     {auth.currentUser && members.length > 0 && (
                         <div className="flex items-center justify-center mt-4 space-x-[-10px]">
@@ -94,7 +94,7 @@ export default function JoinGroup() {
                         onClick={() => {
                             localStorage.setItem('joinGroupId', groupId);
                             navigate('/auth');
-                        }}                        
+                        }}
                         loading={loading}
                         loadingText="Joining..."
                     >
