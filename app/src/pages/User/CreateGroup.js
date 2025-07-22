@@ -40,8 +40,8 @@ export default function CreateGroup({ onClose }) {
 
             // Store the group in Firestore
             const groupData = {
-                group_name: groupName,
-                group_link: `https://kuusi-f06ab.web.app/group/join/${lowerGroupId}`,
+                name: groupName,
+                link: `https://kuusi-f06ab.web.app/group/join/${lowerGroupId}`,
                 members: [currentUser.uid],
                 created_at: serverTimestamp(),
             };
