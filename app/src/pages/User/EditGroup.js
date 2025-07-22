@@ -54,7 +54,7 @@ export default function EditGroup({ onClose }) {
                     const firstGroup = userGroups[0];
                     setGroupName(firstGroup.name);
                     setGroupId(firstGroup.id);
-                    setGroupLink(firstGroup.group_link);
+                    setGroupLink(firstGroup.link);
                 }
             } catch (error) {
                 console.error('Error fetching groups:', error);
@@ -95,7 +95,7 @@ export default function EditGroup({ onClose }) {
         setCurrentGroupIndex(index);
         setGroupName(group.name);
         setGroupId(group.id);
-        setGroupLink(group.group_link);
+        setGroupLink(group.link);
         setErrors([]);
         setSuccessMessage('');
     };
@@ -115,13 +115,13 @@ export default function EditGroup({ onClose }) {
         try {
             const updatedData = {
                 name: groupName,
-                group_link: groupLink,
+                link: groupLink,
             };
 
             const originalDocId = groups[currentGroupIndex].id;
             await updateDoc(doc(db, 'groups', originalDocId), updatedData);
             setSuccessMessage('Group updated successfully!');
-            setGroupLink(updatedData.group_link);
+            setGroupLink(updatedData.link);
         } catch (error) {
             console.error('Group update error:', error);
             setErrors(['Failed to update group.']);
