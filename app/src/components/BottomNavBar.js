@@ -11,7 +11,6 @@ import {
     HomeIcon as HomeIconSolid,
     ClockIcon as ClockIconSolid,
     UserIcon as UserIconSolid,
-    CameraIcon as CameraIconSolid,
 } from '@heroicons/react/24/solid';
 
 export default function BottomNavBar() {
